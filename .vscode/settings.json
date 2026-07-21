@@ -1,0 +1,12 @@
+{
+  // Makes VS Code use this project's own TypeScript (in node_modules)
+  // instead of the version built into the editor. Next.js's TS plugin
+  // (declared in tsconfig.json) only loads with the workspace version,
+  // and it's what teaches the editor to understand CSS/asset imports
+  // like `import "./globals.css"` — without it you'll see a false
+  // "Cannot find module" error on that line even though the app builds
+  // fine.
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "js/ts.tsdk.path": "node_modules/typescript/lib"
+}
