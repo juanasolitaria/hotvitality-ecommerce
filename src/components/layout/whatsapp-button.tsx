@@ -21,9 +21,10 @@ function WhatsAppIcon() {
 
 // Fixed floating contact button shown on every page, bottom-right, so a
 // customer can reach us on WhatsApp from anywhere in the store. The
-// "Contact us!" label is a separate span that's collapsed to zero width
-// by default and only grows into view on hover/focus (via the `group`
-// on the parent link), so it doesn't take up space normally.
+// "Contact us!" label is always visible now (no hover needed to reveal
+// it), and the ring behind the icon only blinks once every 20 seconds
+// (via the `whatsapp-blink` keyframes in globals.css) instead of pulsing
+// nonstop, so it stays noticeable without being distracting.
 export function WhatsAppButton() {
   return (
     <a
@@ -31,21 +32,18 @@ export function WhatsAppButton() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with us on WhatsApp"
-      className="group fixed bottom-5 right-5 z-50 flex items-center gap-0"
+      className="fixed bottom-5 right-5 z-50 flex items-center gap-3"
     >
-      <span
-        aria-hidden="true"
-        className="pointer-events-none max-w-0 overflow-hidden whitespace-nowrap rounded-full bg-white py-3 text-base font-semibold text-foreground opacity-0 shadow-md transition-all duration-300 ease-out group-hover:max-w-xs group-hover:px-5 group-focus-visible:max-w-xs group-focus-visible:px-5 group-hover:mr-3 group-focus-visible:mr-3 group-hover:opacity-100 group-focus-visible:opacity-100"
-      >
-        Contact Us!
+      <span className="whitespace-nowrap rounded-full bg-white px-5 py-3 text-base font-semibold text-foreground shadow-md">
+        <strong>Contact us!</strong> Chat with us on WhatsApp
       </span>
 
-      <span className="relative flex size-27 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl transition-transform duration-200 group-hover:scale-110">
-        {/* Decorative pulsing ring behind the icon to make the button
-            more noticeable at a glance. */}
+      <span className="relative flex size-27 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white shadow-xl">
+        {/* Decorative ring behind the icon that blinks outward once every
+            20s (see `whatsapp-blink` in globals.css) to catch the eye. */}
         <span
           aria-hidden="true"
-          className="absolute inset-0 animate-ping rounded-full bg-[#25D366] opacity-30"
+          className="absolute inset-0 rounded-full bg-[#25D366] [animation:whatsapp-blink_20s_ease-in-out_infinite]"
         />
         <WhatsAppIcon />
       </span>

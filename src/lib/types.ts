@@ -1,12 +1,6 @@
 // Shared TypeScript types for the store. Keeping them in one place makes
 // it easy to see the shape of our data and reuse it across components.
 
-export type ProductCategory =
-  | "vitamins"
-  | "protein"
-  | "minerals"
-  | "herbal"
-  | "wellness";
 
 export interface Product {
   id: string;
@@ -18,8 +12,8 @@ export interface Product {
   /** Longer description shown on the product detail page. */
   description: string;
   price: number;
-  image: string;
-  category: ProductCategory;
+  /** One or more photo URLs. The first one is used as the card/cart thumbnail. */
+  images: string[];
 }
 
 // A single line item inside the shopping cart: a product plus how many

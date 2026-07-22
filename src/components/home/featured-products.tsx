@@ -1,11 +1,12 @@
 import Link from "next/link";
 
-import { products } from "@/data/products";
+import { getProducts } from "@/lib/supabase/products";
 import { ProductCard } from "@/components/shop/product-card";
 import { Button } from "@/components/ui/button";
 
-export function FeaturedProducts() {
+export async function FeaturedProducts() {
   // Show the first 4 products as a curated preview on the homepage.
+  const products = await getProducts();
   const featured = products.slice(0, 4);
 
   return (

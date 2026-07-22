@@ -1,32 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
 
-import { mockCartItems, getCartSubtotal } from "@/data/cart";
+import { useCart } from "@/lib/cart-context";
 import { CartItem } from "@/components/cart/cart-item";
 import { CartSummary } from "@/components/cart/cart-summary";
 import { Button } from "@/components/ui/button";
 
 export default function CartPage() {
-  // Seeded from mock data since there's no real cart/backend yet. This
-  // state only lives in the browser tab and resets on refresh.
-  const [items, setItems] = useState(mockCartItems);
-
-  function updateQuantity(productId: string, delta: number) {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.product.id === productId
-          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-          : item
-      )
-    );
-  }
-
-  function removeItem(productId: string) {
-    setItems((prev) => prev.filter((item) => item.product.id !== productId));
-  }
+  const { items, subtotal, updateQuantity, removeItem } = useCart();
 
   if (items.length === 0) {
     return (
@@ -59,15 +42,15 @@ export default function CartPage() {
             <CartItem
               key={item.product.id}
               item={item}
-              onIncrease={(id) => updateQuantity(id, 1)}
-              onDecrease={(id) => updateQuantity(id, -1)}
+              onIncrease={(id) => updateQuantity(id, item.quantity + 1)}
+              onDecrease={(id) => updateQuantity(id, item.quantity - 1)}
               onRemove={removeItem}
             />
           ))}
         </div>
 
         <div className="lg:sticky lg:top-20 lg:h-fit">
-          <CartSummary subtotal={getCartSubtotal(items)} />
+          <CartSummary subtotal={subtotal} />
         </div>
       </div>
     </div>

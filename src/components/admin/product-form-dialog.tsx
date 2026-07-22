@@ -2,18 +2,12 @@
 
 import { useState, type ReactElement } from "react";
 
-import type { Product, ProductCategory } from "@/lib/types";
+import type { Product } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ImageDropzone } from "@/components/admin/image-dropzone";
 import {
   Dialog,
   DialogContent,
@@ -23,22 +17,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
-const CATEGORIES: ProductCategory[] = [
-  "vitamins",
-  "protein",
-  "minerals",
-  "herbal",
-  "wellness",
-];
+import { toast } from "sonner";
 
 const EMPTY_FORM = {
   name: "",
   shortDescription: "",
   description: "",
   price: "",
-  category: "vitamins" as ProductCategory,
-  image: "",
+  images: [] as string[],
 };
 
 function slugify(name: string) {
@@ -69,8 +55,7 @@ export function ProductFormDialog({
           shortDescription: product.shortDescription,
           description: product.description,
           price: String(product.price),
-          category: product.category,
-          image: product.image,
+          images: product.images,
         }
       : EMPTY_FORM
   );
@@ -90,8 +75,7 @@ export function ProductFormDialog({
               shortDescription: product.shortDescription,
               description: product.description,
               price: String(product.price),
-              category: product.category,
-              image: product.image,
+              images: product.images,
             }
           : EMPTY_FORM
       );
@@ -101,6 +85,11 @@ export function ProductFormDialog({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
+    if (form.images.length === 0) {
+      toast.error("Add at least one photo");
+      return;
+    }
+
     const price = Number(form.price);
     const savedProduct: Product = {
       id: product?.id ?? crypto.randomUUID(),
@@ -109,8 +98,7 @@ export function ProductFormDialog({
       shortDescription: form.shortDescription,
       description: form.description,
       price: Number.isFinite(price) ? price : 0,
-      category: form.category,
-      image: form.image,
+      images: form.images,
     };
 
     onSave(savedProduct);
@@ -177,62 +165,27 @@ export function ProductFormDialog({
               />
             </div>
 
-            {/* Price and category side by side from `sm` up, stacked on
-                very small dialogs (mobile-first even inside a modal). */}
-            <div className="flex flex-col gap-4 sm:flex-row">
-              <div className="flex flex-1 flex-col gap-1.5">
-                <Label htmlFor="price">Price (USD)</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  required
-                  value={form.price}
-                  onChange={(e) =>
-                    setForm((prev) => ({ ...prev, price: e.target.value }))
-                  }
-                />
-              </div>
-
-              <div className="flex flex-1 flex-col gap-1.5">
-                <Label htmlFor="category">Category</Label>
-                <Select
-                  value={form.category}
-                  onValueChange={(value) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      category: value as ProductCategory,
-                    }))
-                  }
-                >
-                  <SelectTrigger id="category" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIES.map((category) => (
-                      <SelectItem
-                        key={category}
-                        value={category}
-                        className="capitalize"
-                      >
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="price">Price (USD)</Label>
+              <Input
+                id="price"
+                type="number"
+                min="0"
+                step="0.01"
+                required
+                value={form.price}
+                onChange={(e) =>
+                  setForm((prev) => ({ ...prev, price: e.target.value }))
+                }
+              />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="image">Image URL</Label>
-              <Input
-                id="image"
-                type="url"
-                required
-                value={form.image}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, image: e.target.value }))
+              <Label>Photos</Label>
+              <ImageDropzone
+                images={form.images}
+                onChange={(images) =>
+                  setForm((prev) => ({ ...prev, images }))
                 }
               />
             </div>

@@ -29,7 +29,7 @@ export function CartItem({
         className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-muted"
       >
         <Image
-          src={product.image}
+          src={product.images[0]}
           alt={product.name}
           fill
           sizes="80px"

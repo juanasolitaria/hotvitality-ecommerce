@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Package,
   CreditCard,
   Users,
   Store,
+  LogOut,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 
 const ADMIN_LINKS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -23,6 +25,15 @@ const ADMIN_LINKS = [
 // mobile Sheet drawer, so the two stay in sync automatically.
 export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleLogout() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    onNavigate?.();
+    router.push("/");
+    router.refresh();
+  }
 
   return (
     <nav className="flex flex-col gap-1">
@@ -60,6 +71,15 @@ export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
         <Store className="size-4" />
         Back to store
       </Link>
+
+      <button
+        type="button"
+        onClick={handleLogout}
+        className="flex items-center gap-3 rounded-lg px-3 py-2 text-left text-sm font-medium text-foreground/80 hover:bg-accent hover:text-foreground"
+      >
+        <LogOut className="size-4" />
+        Log out
+      </button>
     </nav>
   );
 }

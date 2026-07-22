@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Leaf } from "lucide-react";
 
 import { Separator } from "@/components/ui/separator";
+import { Logo } from "@/components/layout/logo";
 
 // lucide-react only ships generic icons, not brand logos, so these social
 // glyphs are small inline SVGs (standard Font Awesome brand icon paths,
@@ -46,8 +46,8 @@ export function Footer() {
             columns from the `sm` breakpoint up. */}
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-3">
           <div>
-            <Link href="/" className="flex items-center gap-2 text-[#8fc3a8]">
-              <Leaf className="size-6" />
+            <Link href="/" className="flex items-center gap-2">
+              <Logo />
               <span className="text-lg font-bold text-white">
                 Hot Vitality
               </span>

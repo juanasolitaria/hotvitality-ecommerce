@@ -16,6 +16,39 @@
   }
 }
 
+/* Everything on desktop felt small at 100%, so we scale the whole page up.
+   Only above the `lg` breakpoint — mobile layouts stay at their designed
+   size. This used to be done with `zoom: 1.25`, but `zoom` rescales the
+   page visually *after* layout, which breaks the position math that
+   floating UI (dropdowns, tooltips, popovers, ...) uses to anchor itself
+   to a trigger element — those ended up rendered off-screen. Bumping the
+   root font-size instead scales every rem-based Tailwind utility as real
+   layout, so it looks the same but doesn't confuse anchored positioning. */
+@media (min-width: 1024px) {
+  html {
+    font-size: 20px;
+  }
+}
+
+/* Used by the WhatsApp button's pulsing ring: a 20s cycle that sits idle
+   (invisible) for almost the whole duration and only "blinks" outward in
+   the last moment, instead of pulsing nonstop like `animate-ping` does. */
+@keyframes whatsapp-blink {
+  0%,
+  95% {
+    transform: scale(1);
+    opacity: 0;
+  }
+  96% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+
 /*
  * Theme tokens
  * ------------

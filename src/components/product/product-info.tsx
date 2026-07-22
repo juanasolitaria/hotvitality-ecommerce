@@ -5,10 +5,11 @@ import { Minus, Plus } from "lucide-react";
 import { toast } from "sonner";
 
 import type { Product } from "@/lib/types";
+import { useCart } from "@/lib/cart-context";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 export function ProductInfo({ product }: { product: Product }) {
+  const { addItem } = useCart();
   const [quantity, setQuantity] = useState(1);
 
   function decrease() {
@@ -20,18 +21,13 @@ export function ProductInfo({ product }: { product: Product }) {
   }
 
   function handleAddToCart() {
-    toast.success(
-      `${quantity} x ${product.name} added to cart`
-    );
+    addItem(product, quantity);
+    toast.success(`${quantity} x ${product.name} added to cart`);
   }
 
   return (
     <div>
-      <Badge variant="secondary" className="capitalize">
-        {product.category}
-      </Badge>
-
-      <h1 className="mt-3 text-2xl font-bold text-foreground sm:text-3xl">
+      <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
         {product.name}
       </h1>
       <p className="mt-2 text-xl font-semibold text-primary">

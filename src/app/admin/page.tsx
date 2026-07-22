@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DollarSign, Package, ShoppingCart, Users } from "lucide-react";
 
-import { products } from "@/data/products";
+import { getProducts } from "@/lib/supabase/products";
 import { orders } from "@/data/orders";
 import { users } from "@/data/users";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,7 +21,8 @@ export const metadata: Metadata = {
   title: "Admin Dashboard | Hot Vitality",
 };
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  const products = await getProducts();
   const revenue = orders.reduce((total, order) => total + order.total, 0);
   const recentOrders = orders.slice(0, 5);
 

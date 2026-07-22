@@ -34,14 +34,6 @@ export function HeroCarousel() {
     return () => clearInterval(timer);
   }, []);
 
-  function goToPrevious() {
-    setIndex((prev) => (prev - 1 + SLIDES.length) % SLIDES.length);
-  }
-
-  function goToNext() {
-    setIndex((prev) => (prev + 1) % SLIDES.length);
-  }
-
   return (
     <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl">
       {SLIDES.map((slide, i) => (

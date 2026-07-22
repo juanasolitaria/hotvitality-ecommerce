@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 
-import { products } from "@/data/products";
+import { getProducts } from "@/lib/supabase/products";
 import { ProductGrid } from "@/components/shop/product-grid";
 
 export const metadata: Metadata = {
   title: "Shop | Hot Vitality",
 };
 
-export default function ShopPage() {
+export default async function ShopPage() {
+  const products = await getProducts();
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-8">

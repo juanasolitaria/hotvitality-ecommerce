@@ -1,8 +1,7 @@
 import Link from "next/link";
-import { Leaf, Menu, Search, ShoppingCart, User } from "lucide-react";
+import { Menu } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -10,7 +9,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { mockCartItems, getCartItemCount } from "@/data/cart";
+import { Logo } from "@/components/layout/logo";
+import { CartIndicator } from "@/components/layout/cart-indicator";
+import { AccountButton } from "@/components/layout/account-button";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -19,8 +20,6 @@ const NAV_LINKS = [
 ];
 
 export function Header() {
-  const cartCount = getCartItemCount(mockCartItems);
-
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-[#c5e9c8]">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
@@ -54,8 +53,8 @@ export function Header() {
         </Sheet>
 
         {/* Logo */}
-        <Link href="/" className=" mr-2 flex items-center gap-2 text-primary">
-          <Leaf className="size-6" />
+        <Link href="/" className="mr-2 flex items-center gap-2">
+          <Logo />
           <span className="text-lg font-bold tracking-tight text-[#2e3832]">
             HotVitality
           </span>
@@ -77,35 +76,10 @@ export function Header() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          {/* Minimalist login button: transparent with a primary-colored
-              border/text by default, and the colors fully invert (solid
-              primary background, light text) on hover. */}
-          <Button
-            render={<Link href="/login" />}
-            nativeButton={false}
-            variant="outline"
-            size="sm"
-            className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-          >
-            <User className="size-4" />
-            <span className="hidden sm:inline">Log In</span>
-          </Button>
-
-          <Button
-            render={<Link href="/cart" />}
-            nativeButton={false}
-            variant="ghost"
-            size="icon"
-            className="relative"
-          >
-            <ShoppingCart className="size-5" />
-            {cartCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
-                {cartCount}
-              </span>
-            )}
-            <span className="sr-only">Cart</span>
-          </Button>
+          {/* Account button: icon-only, no label. Opens the login/signup
+              modal (see AuthModal) on click. */}
+          <AccountButton />
+          <CartIndicator />
         </div>
       </div>
     </header>
