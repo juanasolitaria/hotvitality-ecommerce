@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { users } from "@/data/users";
+import { getUsers } from "@/lib/supabase/users";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -16,7 +16,9 @@ export const metadata: Metadata = {
   title: "Users | Hot Vitality Admin",
 };
 
-export default function AdminUsersPage() {
+export default async function AdminUsersPage() {
+  const users = await getUsers();
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-foreground">Users</h1>

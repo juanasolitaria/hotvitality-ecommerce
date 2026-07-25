@@ -3,8 +3,8 @@ import Link from "next/link";
 import { DollarSign, Package, ShoppingCart, Users } from "lucide-react";
 
 import { getProducts } from "@/lib/supabase/products";
-import { orders } from "@/data/orders";
-import { users } from "@/data/users";
+import { getOrders } from "@/lib/supabase/orders";
+import { getUsers } from "@/lib/supabase/users";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -23,6 +23,8 @@ export const metadata: Metadata = {
 
 export default async function AdminDashboardPage() {
   const products = await getProducts();
+  const orders = await getOrders();
+  const users = await getUsers();
   const revenue = orders.reduce((total, order) => total + order.total, 0);
   const recentOrders = orders.slice(0, 5);
 
@@ -86,7 +88,9 @@ export default async function AdminDashboardPage() {
             <TableBody>
               {recentOrders.map((order) => (
                 <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id}</TableCell>
+                  <TableCell className="font-medium">
+                    {order.id.slice(0, 8)}
+                  </TableCell>
                   <TableCell>{order.customerName}</TableCell>
                   <TableCell>
                     <Badge

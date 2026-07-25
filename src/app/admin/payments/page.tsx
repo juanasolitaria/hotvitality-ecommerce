@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { orders } from "@/data/orders";
+import { getOrders } from "@/lib/supabase/orders";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -17,7 +17,8 @@ export const metadata: Metadata = {
   title: "Payments | Hot Vitality Admin",
 };
 
-export default function AdminPaymentsPage() {
+export default async function AdminPaymentsPage() {
+  const orders = await getOrders();
   const revenue = orders.reduce(
     (total, order) => total + (order.status !== "refunded" ? order.total : 0),
     0
@@ -47,7 +48,9 @@ export default function AdminPaymentsPage() {
             <TableBody>
               {orders.map((order) => (
                 <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.id}</TableCell>
+                  <TableCell className="font-medium">
+                    {order.id.slice(0, 8)}
+                  </TableCell>
                   <TableCell>
                     <div>
                       <p className="text-foreground">{order.customerName}</p>

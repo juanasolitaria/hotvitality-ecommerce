@@ -24,9 +24,8 @@ export interface CartItem {
 }
 
 // --- Admin dashboard types ---
-// Used by the mock data under src/data/orders.ts and src/data/users.ts.
-// Once Supabase + Stripe are wired up, these will describe real rows
-// instead of hardcoded arrays, but the shape should stay close to this.
+// Both describe real rows from Supabase now — see
+// src/lib/supabase/orders.ts and src/lib/supabase/users.ts.
 
 export type OrderStatus = "pending" | "paid" | "shipped" | "refunded";
 

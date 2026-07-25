@@ -6,12 +6,21 @@ import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 // Already-logged-in version of "set a new password" — no email link
 // needed here, `updateUser` works directly against the current session.
-export function ChangePasswordForm() {
-  const [password, setPassword] = useState("");
+// `updateUser` alone doesn't check the current password, so we confirm
+// it first by re-authenticating with it before changing anything.
+export function ChangePasswordForm({ email }: { email: string }) {
+  const [open, setOpen] = useState(false);
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
@@ -19,7 +28,21 @@ export function ChangePasswordForm() {
     setLoading(true);
 
     const supabase = createClient();
-    const { error } = await supabase.auth.updateUser({ password });
+
+    const { error: verifyError } = await supabase.auth.signInWithPassword({
+      email,
+      password: oldPassword,
+    });
+
+    if (verifyError) {
+      toast.error("Your current password is incorrect");
+      setLoading(false);
+      return;
+    }
+
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
 
     setLoading(false);
 
@@ -29,25 +52,43 @@ export function ChangePasswordForm() {
     }
 
     toast.success("Password updated!");
-    setPassword("");
+    setOldPassword("");
+    setNewPassword("");
+    setOpen(false);
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
-      <div className="flex flex-1 flex-col gap-1.5">
-        <Label htmlFor="new-password">New password</Label>
-        <Input
-          id="new-password"
-          type="password"
-          required
-          minLength={6}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </div>
-      <Button type="submit" disabled={loading}>
-        {loading ? "Saving..." : "Update password"}
-      </Button>
-    </form>
+    <>
+      <Button onClick={() => setOpen(true)}>Update password</Button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Update password</DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <Input
+              type="password"
+              placeholder="Old password"
+              required
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+            />
+            <Input
+              type="password"
+              placeholder="New password"
+              required
+              minLength={6}
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <Button type="submit" disabled={loading}>
+              {loading ? "Saving..." : "Update password"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

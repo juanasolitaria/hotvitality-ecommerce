@@ -1,22 +1,12 @@
-import { toast } from "sonner";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-
-const FREE_SHIPPING_THRESHOLD = 50;
-const FLAT_SHIPPING_RATE = 5.99;
+import { calculateShipping } from "@/lib/shipping";
 
 export function CartSummary({ subtotal }: { subtotal: number }) {
-  const shipping =
-    subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD
-      ? 0
-      : FLAT_SHIPPING_RATE;
+  const shipping = calculateShipping(subtotal);
   const total = subtotal + shipping;
-
-  // Checkout (Stripe) isn't wired up yet during this UI-only phase.
-  function handleCheckout() {
-    toast.info("Checkout is coming soon!");
-  }
 
   return (
     <div className="rounded-2xl border border-border bg-card p-6">
@@ -42,9 +32,10 @@ export function CartSummary({ subtotal }: { subtotal: number }) {
 
       <Button
         size="lg"
-        onClick={handleCheckout}
         disabled={subtotal === 0}
         className="mt-6 w-full"
+        nativeButton={false}
+        render={<Link href="/checkout" />}
       >
         Proceed to Checkout
       </Button>

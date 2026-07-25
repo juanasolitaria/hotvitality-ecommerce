@@ -12,6 +12,7 @@ import {
 import { Logo } from "@/components/layout/logo";
 import { CartIndicator } from "@/components/layout/cart-indicator";
 import { AccountButton } from "@/components/layout/account-button";
+import { createClient } from "@/lib/supabase/server";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
@@ -19,7 +20,15 @@ const NAV_LINKS = [
   { href: "/shop", label: "Deals" },
 ];
 
-export function Header() {
+export async function Header() {
+  // Fetched here (Server Component) rather than in AccountButton so
+  // there's no logged-out flash while a client-side check resolves —
+  // the header already knows the auth state on first paint.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-[#c5e9c8]">
       <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
@@ -76,9 +85,10 @@ export function Header() {
         </nav>
 
         <div className="ml-auto flex items-center gap-2">
-          {/* Account button: icon-only, no label. Opens the login/signup
-              modal (see AuthModal) on click. */}
-          <AccountButton />
+          {/* Account button: icon-only, no label. Logged out, it opens
+              the login/signup modal on click. Logged in, hovering
+              reveals a Dashboard/Log out menu (see AccountButton). */}
+          <AccountButton user={user} />
           <CartIndicator />
         </div>
       </div>

@@ -118,12 +118,14 @@ export default async function AccountPage() {
           <h2 className="text-lg font-semibold text-foreground">
             Change password
           </h2>
-          <ChangePasswordForm />
+          <div className="mt-3">
+            <ChangePasswordForm email={user.email ?? ""} />
+          </div>
         </CardContent>
       </Card>
 
       <div className="mt-6">
-        <LogoutButton />
+        <LogoutButton className="bg-white hover:border-destructive/30 hover:bg-destructive/10 hover:text-destructive" />
       </div>
     </div>
   );
