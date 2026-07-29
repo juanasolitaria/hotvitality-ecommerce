@@ -42,7 +42,7 @@ export async function POST(request: Request) {
 
     if (orderId) {
       const db = adminClient();
-      await db
+      const { error } = await db
         .from("orders")
         .update({
           status: "paid",
@@ -52,6 +52,14 @@ export async function POST(request: Request) {
               : session.payment_intent?.id ?? null,
         })
         .eq("id", orderId);
+
+      // Returning a 500 here (instead of swallowing the error) makes
+      // Stripe automatically retry this webhook on its usual backoff
+      // schedule, instead of us silently losing the "mark as paid" update.
+      if (error) {
+        console.error("Failed to mark order as paid:", error.message);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
     }
   }
 

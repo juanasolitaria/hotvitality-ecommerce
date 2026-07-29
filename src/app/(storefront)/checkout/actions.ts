@@ -185,10 +185,17 @@ export async function createCheckoutSession(
   }
 
   const db = adminClient();
-  await db
+  const { error: sessionIdError } = await db
     .from("orders")
     .update({ stripe_session_id: session.id })
     .eq("id", order.id);
+
+  // Not fatal — the order can still be paid and tracked via
+  // stripe_payment_intent_id from the webhook — but worth knowing about
+  // if it ever happens again instead of failing silently.
+  if (sessionIdError) {
+    console.error("Failed to save stripe_session_id:", sessionIdError.message);
+  }
 
   return { url: session.url };
 }

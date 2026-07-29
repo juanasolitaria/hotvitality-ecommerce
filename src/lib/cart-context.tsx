@@ -85,6 +85,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   function clearCart() {
     setItems([]);
+    // Also clear storage directly, not just state: on a fresh full-page
+    // load (e.g. redirected back from Stripe), this component's mount
+    // effect can run before the provider's own hydrate-from-localStorage
+    // effect above (React fires child effects before parent effects), so
+    // that hydration would otherwise immediately reload the old cart and
+    // silently undo this clear.
+    localStorage.removeItem(STORAGE_KEY);
   }
 
   const itemCount = items.reduce((total, item) => total + item.quantity, 0);
