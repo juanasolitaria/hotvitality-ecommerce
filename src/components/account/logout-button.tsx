@@ -21,7 +21,7 @@ export function LogoutButton({ className }: { className?: string }) {
     <Button
       variant="outline"
       onClick={handleLogout}
-      className={cn("bg-white shadow-sm", className)}
+      className={cn("bg-white", className)}
     >
       <LogOut className="size-4" />
       Log out

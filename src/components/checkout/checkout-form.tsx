@@ -2,12 +2,12 @@
 
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
-import { CheckCircle2, ShoppingBag } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 
 import { useCart } from "@/lib/cart-context";
 import { calculateShipping } from "@/lib/shipping";
-import { createOrder, type OrderConfirmation } from "@/app/(storefront)/checkout/actions";
+import { createCheckoutSession } from "@/app/(storefront)/checkout/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,15 +37,12 @@ const BLANK_ADDRESS = {
 const FIELD_CLASS = "text-black placeholder:text-white";
 
 export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
-  const { items, subtotal, clearCart } = useCart();
+  const { items, subtotal } = useCart();
 
   const [name, setName] = useState(initialName);
   const [email, setEmail] = useState(initialEmail);
   const [address, setAddress] = useState(BLANK_ADDRESS);
   const [submitting, setSubmitting] = useState(false);
-  const [confirmation, setConfirmation] = useState<OrderConfirmation | null>(
-    null
-  );
 
   function updateAddress(field: keyof typeof BLANK_ADDRESS, value: string) {
     setAddress((prev) => ({ ...prev, [field]: value }));
@@ -56,7 +53,12 @@ export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
     setSubmitting(true);
 
     try {
-      const result = await createOrder({
+      // Creates the pending order in Supabase, then starts a Stripe
+      // Checkout Session and hands back its URL. We don't clear the cart
+      // or show a confirmation here — the customer still has to actually
+      // pay on Stripe's page first. That happens on /checkout/success,
+      // which only renders once Stripe confirms the payment.
+      const { url } = await createCheckoutSession({
         customerName: name,
         customerEmail: email,
         shippingAddress: address,
@@ -66,69 +68,13 @@ export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
         })),
       });
 
-      clearCart();
-      setConfirmation(result);
+      window.location.href = url;
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Couldn't place your order."
+        error instanceof Error ? error.message : "Couldn't start checkout."
       );
-    } finally {
       setSubmitting(false);
     }
-  }
-
-  if (confirmation) {
-    return (
-      <div className="mx-auto mt-10 max-w-lg text-center">
-        <CheckCircle2 className="mx-auto size-12 text-primary" />
-        <h2 className="mt-4 text-xl font-semibold text-foreground">
-          Order placed!
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Order <span className="font-medium text-foreground">{confirmation.id}</span> —
-          we&apos;ll email you at {email} once it ships.
-        </p>
-
-        <div className="mt-6 rounded-2xl border border-border bg-card p-6 text-left">
-          {confirmation.items.map((item, i) => (
-            <div key={i} className="flex justify-between py-1 text-sm">
-              <span className="text-muted-foreground">
-                {item.quantity} &times; {item.productName}
-              </span>
-              <span className="text-foreground">
-                ${(item.unitPrice * item.quantity).toFixed(2)}
-              </span>
-            </div>
-          ))}
-          <Separator className="my-3" />
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Subtotal</span>
-            <span>${confirmation.subtotal.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>Shipping</span>
-            <span>
-              {confirmation.shipping === 0
-                ? "Free"
-                : `$${confirmation.shipping.toFixed(2)}`}
-            </span>
-          </div>
-          <Separator className="my-3" />
-          <div className="flex justify-between text-base font-semibold text-foreground">
-            <span>Total</span>
-            <span>${confirmation.total.toFixed(2)}</span>
-          </div>
-        </div>
-
-        <Button
-          className="mt-6 w-full"
-          nativeButton={false}
-          render={<Link href="/shop" />}
-        >
-          Continue Shopping
-        </Button>
-      </div>
-    );
   }
 
   if (items.length === 0) {
@@ -313,16 +259,17 @@ export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
             <span>${total.toFixed(2)}</span>
           </div>
 
-          {/* No payment step yet — this creates a `pending` order straight
-              in Supabase so we can confirm the checkout flow end to end
-              before Stripe is wired up. */}
+          {/* Creates a `pending` order in Supabase, then sends the
+              customer to Stripe's hosted checkout page to actually pay.
+              The order only flips to `paid` once Stripe's webhook
+              confirms it. */}
           <Button
             type="submit"
             size="lg"
             disabled={submitting}
             className="mt-6 w-full"
           >
-            {submitting ? "Placing order..." : "Place Order"}
+            {submitting ? "Redirecting to payment..." : "Continue to Payment"}
           </Button>
         </div>
       </div>

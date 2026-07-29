@@ -1,8 +1,10 @@
 "use server";
 
+import { headers } from "next/headers";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 
 import { createClient } from "@/lib/supabase/server";
+import { stripe } from "@/lib/stripe";
 import { calculateShipping } from "@/lib/shipping";
 
 // Postgres re-checks the `orders_select_own_or_admin` policy against a
@@ -13,7 +15,9 @@ import { calculateShipping } from "@/lib/shipping";
 // and the whole insert gets rejected with a misleading "row violates
 // row-level security policy" error. We already derive every value here
 // ourselves (never trusting the client) and decide `user_id` from the
-// verified session, so bypassing RLS for just this write is safe.
+// verified session, so bypassing RLS for just this write is safe. The
+// webhook route also uses this client, since it has no user session at
+// all.
 function adminClient() {
   return createServiceClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -43,24 +47,11 @@ export interface CheckoutInput {
   items: CheckoutItemInput[];
 }
 
-export interface OrderConfirmation {
-  id: string;
-  createdAt: string;
-  items: { productName: string; unitPrice: number; quantity: number }[];
-  subtotal: number;
-  shipping: number;
-  total: number;
-}
-
 // Reads (checking who's logged in, looking up product prices) go through
 // the normal per-request client so RLS applies as usual. The actual
 // order/order_items writes go through the admin client — see
-// adminClient() above for why. No payment yet — orders are created
-// straight into `pending` status; Stripe will move them to `paid` once
-// it's wired up.
-export async function createOrder(
-  input: CheckoutInput
-): Promise<OrderConfirmation> {
+// adminClient() above for why.
+async function createPendingOrder(input: CheckoutInput) {
   if (input.items.length === 0) {
     throw new Error("Your cart is empty.");
   }
@@ -107,6 +98,9 @@ export async function createOrder(
 
   const db = adminClient();
 
+  // Orders start `pending`. Stripe's webhook flips this to `paid` once
+  // the customer actually completes payment on Stripe's hosted page —
+  // we never trust the browser redirect back to us for that.
   const { data: order, error: orderError } = await db
     .from("orders")
     .insert({
@@ -128,16 +122,73 @@ export async function createOrder(
 
   if (itemsError) throw new Error(itemsError.message);
 
-  return {
-    id: order.id,
-    createdAt: order.created_at,
-    items: orderItems.map(({ product_name, unit_price, quantity }) => ({
-      productName: product_name,
-      unitPrice: unit_price,
-      quantity,
-    })),
-    subtotal,
-    shipping,
-    total,
-  };
+  return { order, orderItems, subtotal, shipping, total };
+}
+
+// Prefer an explicit site URL in production (works no matter what host
+// header a proxy/load balancer forwards); fall back to the request's own
+// host in development so this works out of the box on localhost.
+async function getOrigin() {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL;
+  if (configured) return configured.replace(/\/$/, "");
+
+  const hdrs = await headers();
+  const host = hdrs.get("host");
+  const protocol = host?.startsWith("localhost") ? "http" : "https";
+  return `${protocol}://${host}`;
+}
+
+// Creates the pending order in Supabase, then starts a Stripe Checkout
+// Session for it and hands back the URL to redirect the customer to.
+// Stripe hosts the actual payment page — card details never touch our
+// server.
+export async function createCheckoutSession(
+  input: CheckoutInput
+): Promise<{ url: string }> {
+  const { order, orderItems, shipping } = await createPendingOrder(input);
+  const origin = await getOrigin();
+
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    customer_email: input.customerEmail,
+    line_items: [
+      ...orderItems.map((item) => ({
+        price_data: {
+          currency: "usd" as const,
+          product_data: { name: item.product_name },
+          unit_amount: Math.round(item.unit_price * 100),
+        },
+        quantity: item.quantity,
+      })),
+      ...(shipping > 0
+        ? [
+            {
+              price_data: {
+                currency: "usd" as const,
+                product_data: { name: "Shipping" },
+                unit_amount: Math.round(shipping * 100),
+              },
+              quantity: 1,
+            },
+          ]
+        : []),
+    ],
+    // Lets the webhook (and the success page) find this order again —
+    // Stripe echoes metadata back on every event for the session.
+    metadata: { orderId: order.id },
+    success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${origin}/checkout?canceled=true`,
+  });
+
+  if (!session.url) {
+    throw new Error("Could not start checkout. Please try again.");
+  }
+
+  const db = adminClient();
+  await db
+    .from("orders")
+    .update({ stripe_session_id: session.id })
+    .eq("id", order.id);
+
+  return { url: session.url };
 }
