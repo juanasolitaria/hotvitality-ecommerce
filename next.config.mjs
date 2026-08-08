@@ -4,6 +4,17 @@ const supabaseHostname = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    serverActions: {
+      // Lets Server Actions (e.g. checkout) work when testing from a phone
+      // on the same Wi-Fi, hitting the dev machine's LAN IP instead of
+      // localhost — Next.js rejects Server Action requests from origins it
+      // doesn't recognize as a CSRF protection, so the phone's origin has
+      // to be listed here explicitly. Update this IP if it ever changes
+      // (check with `ipconfig` / `Get-NetIPAddress`).
+      allowedOrigins: ["localhost:3000", "10.0.0.236:3000"],
+    },
+  },
   images: {
     // Allows next/image to optimize both the leftover Unsplash placeholder
     // photos and the real product photos uploaded through the admin panel
