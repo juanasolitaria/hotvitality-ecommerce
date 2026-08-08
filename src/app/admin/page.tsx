@@ -18,14 +18,20 @@ import {
 import { ORDER_STATUS_STYLES } from "@/components/admin/order-status-badge";
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard | Hot Vitality",
+  title: "Admin Dashboard | HotVitality",
 };
 
 export default async function AdminDashboardPage() {
   const products = await getProducts();
   const orders = await getOrders();
   const users = await getUsers();
-  const revenue = orders.reduce((total, order) => total + order.total, 0);
+  // Only orders that were actually paid for and not since refunded count
+  // as revenue — `pending` never got charged, and `cancelled` never will.
+  const revenue = orders.reduce(
+    (total, order) =>
+      total + (order.status === "paid" || order.status === "shipped" ? order.total : 0),
+    0
+  );
   const recentOrders = orders.slice(0, 5);
 
   const stats = [

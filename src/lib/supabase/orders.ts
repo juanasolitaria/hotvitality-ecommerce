@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import type { Order, OrderStatus } from "@/lib/types";
+import type { Order, OrderDetail, OrderStatus, ShippingAddress } from "@/lib/types";
 
 // Shape of a row as it comes back from Supabase (snake_case, plus the
 // nested `order_items` used only to compute a total item count).
@@ -42,4 +42,38 @@ export async function getOrders(): Promise<Order[]> {
 
   if (error) throw error;
   return (data ?? []).map(mapOrder);
+}
+
+// Shape of a single order row with everything the detail page needs:
+// the shipping address (with phone) and the actual line items, on top of
+// what the list view already fetches.
+interface OrderDetailRow extends OrderRow {
+  shipping_address: ShippingAddress | null;
+  subtotal: number;
+  order_items: { product_name: string; unit_price: number; quantity: number }[];
+}
+
+// Admin-only, same RLS reasoning as getOrders() above.
+export async function getOrderById(id: string): Promise<OrderDetail | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("orders")
+    .select(
+      "id, customer_name, customer_email, status, total, subtotal, created_at, shipping_address, order_items(product_name, unit_price, quantity)"
+    )
+    .eq("id", id)
+    .single<OrderDetailRow>();
+
+  if (error) return null;
+
+  return {
+    ...mapOrder(data),
+    shippingAddress: data.shipping_address,
+    subtotal: data.subtotal,
+    items: data.order_items.map((item) => ({
+      productName: item.product_name,
+      unitPrice: item.unit_price,
+      quantity: item.quantity,
+    })),
+  };
 }

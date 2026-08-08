@@ -14,13 +14,16 @@ import {
 import { ORDER_STATUS_STYLES } from "@/components/admin/order-status-badge";
 
 export const metadata: Metadata = {
-  title: "Payments | Hot Vitality Admin",
+  title: "Payments | HotVitality Admin",
 };
 
 export default async function AdminPaymentsPage() {
   const orders = await getOrders();
+  // Only orders that were actually paid for and not since refunded count
+  // as revenue — `pending` never got charged, and `cancelled` never will.
   const revenue = orders.reduce(
-    (total, order) => total + (order.status !== "refunded" ? order.total : 0),
+    (total, order) =>
+      total + (order.status === "paid" || order.status === "shipped" ? order.total : 0),
     0
   );
 
