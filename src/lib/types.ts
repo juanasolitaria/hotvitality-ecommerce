@@ -27,7 +27,22 @@ export interface CartItem {
 // Both describe real rows from Supabase now — see
 // src/lib/supabase/orders.ts and src/lib/supabase/users.ts.
 
-export type OrderStatus = "pending" | "paid" | "shipped" | "refunded";
+export type OrderStatus =
+  | "pending"
+  | "paid"
+  | "shipped"
+  | "refunded"
+  | "cancelled";
+
+export interface ShippingAddress {
+  line1: string;
+  line2?: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  phone: string;
+}
 
 export interface Order {
   id: string;
@@ -38,6 +53,19 @@ export interface Order {
   status: OrderStatus;
   /** ISO date string, e.g. "2026-07-12". */
   date: string;
+}
+
+// Everything Order has, plus what the payments list doesn't need but a
+// single order's detail page does: the shipping address/phone and the
+// actual line items, for packing and buying a shipping label.
+export interface OrderDetail extends Order {
+  shippingAddress: ShippingAddress | null;
+  subtotal: number;
+  items: {
+    productName: string;
+    unitPrice: number;
+    quantity: number;
+  }[];
 }
 
 export type UserRole = "customer" | "admin";

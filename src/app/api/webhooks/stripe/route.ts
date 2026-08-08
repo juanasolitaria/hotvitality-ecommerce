@@ -84,5 +84,28 @@ export async function POST(request: Request) {
     }
   }
 
+  // Fires ~24h after a Checkout Session is created if it was never paid —
+  // covers customers who close the tab instead of clicking "back", which
+  // the cancel_url redirect (checkout/page.tsx) never sees. Only touches
+  // orders still `pending`, so it can't ever undo a real payment.
+  if (event.type === "checkout.session.expired") {
+    const session = event.data.object as Stripe.Checkout.Session;
+    const orderId = session.metadata?.orderId;
+
+    if (orderId) {
+      const db = adminClient();
+      const { error } = await db
+        .from("orders")
+        .update({ status: "cancelled" })
+        .eq("id", orderId)
+        .eq("status", "pending");
+
+      if (error) {
+        console.error("Failed to mark expired order as cancelled:", error.message);
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+    }
+  }
+
   return NextResponse.json({ received: true });
 }

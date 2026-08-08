@@ -8,4 +8,5 @@ export const ORDER_STATUS_STYLES: Record<OrderStatus, string> = {
   paid: "border-green-200 bg-green-50 text-green-700",
   shipped: "border-blue-200 bg-blue-50 text-blue-700",
   refunded: "border-red-200 bg-red-50 text-red-700",
+  cancelled: "border-gray-200 bg-gray-100 text-gray-600",
 };

@@ -6,6 +6,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe";
 import { calculateShipping } from "@/lib/shipping";
+import type { ShippingAddress } from "@/lib/types";
 
 // Postgres re-checks the `orders_select_own_or_admin` policy against a
 // row's final values whenever an INSERT asks for it back via RETURNING
@@ -23,16 +24,6 @@ function adminClient() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
-}
-
-export interface ShippingAddress {
-  line1: string;
-  line2?: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  country: string;
-  phone: string;
 }
 
 export interface CheckoutItemInput {
@@ -134,7 +125,12 @@ async function getOrigin() {
 
   const hdrs = await headers();
   const host = hdrs.get("host");
-  const protocol = host?.startsWith("localhost") ? "http" : "https";
+  // `next dev` only ever serves plain HTTP, even when reached over the
+  // LAN by IP (e.g. testing checkout from a phone) instead of localhost —
+  // checking the hostname here guessed "https" for that case and sent
+  // Stripe's redirect to an HTTPS URL nothing was listening on. Only
+  // assume HTTPS once this is actually deployed.
+  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
   return `${protocol}://${host}`;
 }
 
@@ -177,7 +173,17 @@ export async function createCheckoutSession(
     // Stripe echoes metadata back on every event for the session.
     metadata: { orderId: order.id },
     success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/checkout?canceled=true`,
+    // Echoes the session id back too, so the checkout page can mark this
+    // specific order cancelled right away instead of leaving it stuck on
+    // `pending` until Stripe's `checkout.session.expired` event fires
+    // (see expires_at below, for whoever just closes the tab instead of
+    // clicking back).
+    cancel_url: `${origin}/checkout?canceled=true&session_id={CHECKOUT_SESSION_ID}`,
+    // Stripe's own default is 24h. 30 minutes — Stripe's own minimum for
+    // this field — is plenty of time to actually pay, and means an
+    // abandoned order doesn't sit `pending` for most of a day before the
+    // webhook fallback cleans it up.
+    expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
   });
 
   if (!session.url) {
