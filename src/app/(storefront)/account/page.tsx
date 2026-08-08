@@ -7,7 +7,7 @@ import { ChangePasswordForm } from "@/components/account/change-password-form";
 import { LogoutButton } from "@/components/account/logout-button";
 
 export const metadata: Metadata = {
-  title: "My Account | Hot Vitality",
+  title: "My Account | HotVitality",
 };
 
 interface OrderRow {

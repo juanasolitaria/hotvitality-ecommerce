@@ -49,7 +49,7 @@ export function Footer() {
             <Link href="/" className="flex items-center gap-2">
               <Logo />
               <span className="text-lg font-bold text-white">
-                Hot Vitality
+                HotVitality
               </span>
             </Link>
             <p className="mt-3 max-w-xs text-sm text-white/70">
@@ -104,7 +104,7 @@ export function Footer() {
         <Separator className="my-8 bg-white/15" />
 
         <p className="text-center text-xs text-white/60">
-          &copy; {new Date().getFullYear()} Hot Vitality. All rights reserved.
+          &copy; {new Date().getFullYear()} HotVitality. All rights reserved.
         </p>
       </div>
     </footer>

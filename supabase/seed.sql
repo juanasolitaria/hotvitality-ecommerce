@@ -1,4 +1,4 @@
--- Hot Vitality — seed data
+-- HotVitality — seed data
 -- Run this in the Supabase SQL Editor after 0001_init.sql and 0002_drop_category.sql.
 -- Same products as src/data/products.ts, so the storefront looks identical
 -- once we switch it over to read from Supabase.

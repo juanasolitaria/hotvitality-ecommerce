@@ -4,7 +4,7 @@ import { getProducts } from "@/lib/supabase/products";
 import { ProductGrid } from "@/components/shop/product-grid";
 
 export const metadata: Metadata = {
-  title: "Shop | Hot Vitality",
+  title: "Shop | HotVitality",
 };
 
 export default async function ShopPage() {

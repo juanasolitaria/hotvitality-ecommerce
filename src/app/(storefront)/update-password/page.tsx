@@ -44,7 +44,7 @@ export default function UpdatePasswordPage() {
       <Link href="/" className="flex items-center gap-2">
         <Logo className="size-10" />
         <span className="text-xl font-bold text-foreground">
-          Hot Vitality
+          HotVitality
         </span>
       </Link>
 

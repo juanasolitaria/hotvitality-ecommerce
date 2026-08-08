@@ -10,7 +10,7 @@ export function Logo({ className }: { className?: string }) {
   return (
     <Image
       src="/logo.jpg"
-      alt="Hot Vitality logo"
+      alt="HotVitality logo"
       width={40}
       height={40}
       className={cn("size-8 shrink-0 rounded-full object-cover", className)}

@@ -33,7 +33,7 @@ function buildHtml(order: OrderConfirmationInput) {
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;margin:0 auto;background-color:#ffffff;border-radius:12px;overflow:hidden;">
         <tr>
           <td style="background-color:#1f4b36;padding:24px 32px;text-align:center;">
-            <span style="color:#ffffff;font-size:20px;font-weight:bold;">Hot Vitality</span>
+            <span style="color:#ffffff;font-size:20px;font-weight:bold;">HotVitality</span>
           </td>
         </tr>
         <tr>
@@ -68,7 +68,7 @@ function buildHtml(order: OrderConfirmationInput) {
         </tr>
         <tr>
           <td style="padding:16px 32px;background-color:#faf3e7;text-align:center;">
-            <span style="color:#6b7280;font-size:12px;">&copy; Hot Vitality</span>
+            <span style="color:#6b7280;font-size:12px;">&copy; HotVitality</span>
           </td>
         </tr>
       </table>
@@ -83,9 +83,9 @@ function buildHtml(order: OrderConfirmationInput) {
 // whole event.
 export async function sendOrderConfirmationEmail(order: OrderConfirmationInput) {
   const { error } = await resend.emails.send({
-    from: "Hot Vitality <no-reply@hot-vitality.com>",
+    from: "HotVitality <no-reply@hot-vitality.com>",
     to: order.customerEmail,
-    subject: "Your Hot Vitality order is confirmed",
+    subject: "Your HotVitality order is confirmed",
     html: buildHtml(order),
   });
 

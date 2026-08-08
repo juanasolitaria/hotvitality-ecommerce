@@ -1,4 +1,4 @@
--- Hot Vitality — initial schema
+-- HotVitality — initial schema
 -- Run this once in the Supabase SQL Editor (Project → SQL Editor → New query → paste → Run).
 
 -- ── profiles ──────────────────────────────────────────────────────────────

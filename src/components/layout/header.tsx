@@ -45,7 +45,7 @@ export async function Header() {
           </SheetTrigger>
           <SheetContent side="left" className="w-64">
             <SheetHeader>
-              <SheetTitle>Hot Vitality</SheetTitle>
+              <SheetTitle>HotVitality</SheetTitle>
             </SheetHeader>
             <nav className="flex flex-col gap-1 px-4">
               {NAV_LINKS.map((link) => (

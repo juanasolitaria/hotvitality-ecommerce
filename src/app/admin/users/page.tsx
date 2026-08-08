@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 
 export const metadata: Metadata = {
-  title: "Users | Hot Vitality Admin",
+  title: "Users | HotVitality Admin",
 };
 
 export default async function AdminUsersPage() {

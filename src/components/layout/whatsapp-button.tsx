@@ -1,4 +1,4 @@
-// TODO: replace with the real Hot Vitality business WhatsApp number
+// TODO: replace with the real HotVitality business WhatsApp number
 // (digits only, including country code, e.g. "15551234567").
 const WHATSAPP_PHONE_NUMBER = "7867577079";
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_PHONE_NUMBER}`;

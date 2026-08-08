@@ -10,9 +10,9 @@ import { Toaster } from "@/components/ui/sonner";
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "Hot Vitality | Dietary Supplements",
+  title: "HotVitality | Dietary Supplements",
   description:
-    "Hot Vitality — premium dietary supplements to support your everyday wellness.",
+    "HotVitality — premium dietary supplements to support your everyday wellness.",
 };
 
 // This root layout stays intentionally bare (just fonts, theme, and toasts)
