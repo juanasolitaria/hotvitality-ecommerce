@@ -27,6 +27,13 @@ interface OrderItemRow {
   quantity: number;
 }
 
+interface OrderRow {
+  customer_email: string;
+  subtotal: number;
+  total: number;
+  order_items: OrderItemRow[];
+}
+
 interface CheckoutSuccessPageProps {
   searchParams: Promise<{ session_id?: string }>;
 }
@@ -50,16 +57,10 @@ export default async function CheckoutSuccessPage({
   const { data: order } = await db
     .from("orders")
     .select(
-      "id, customer_email, subtotal, total, order_items(product_name, unit_price, quantity)"
+      "customer_email, subtotal, total, order_items(product_name, unit_price, quantity)"
     )
     .eq("id", orderId)
-    .single<{
-      id: string;
-      customer_email: string;
-      subtotal: number;
-      total: number;
-      order_items: OrderItemRow[];
-    }>();
+    .single<OrderRow>();
 
   if (!order) redirect("/checkout");
 
@@ -75,8 +76,7 @@ export default async function CheckoutSuccessPage({
         Payment successful!
       </h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Order <span className="font-medium text-foreground">{order.id}</span>{" "}
-        — we&apos;ll email you at {order.customer_email} once it ships.
+        We&apos;ll email you at {order.customer_email} once it ships.
       </p>
 
       <div className="mt-6 rounded-2xl border border-border bg-card p-6 text-left">
