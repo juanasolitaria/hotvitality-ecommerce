@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { calculateShipping } from "@/lib/shipping";
 
 export function CartSummary({ subtotal }: { subtotal: number }) {
-  const shipping = calculateShipping(subtotal);
+  const shipping = calculateShipping();
   const total = subtotal + shipping;
 
   return (

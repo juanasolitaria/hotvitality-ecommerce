@@ -92,7 +92,7 @@ async function createPendingOrder(input: CheckoutInput) {
     (total, item) => total + item.unit_price * item.quantity,
     0
   );
-  const shipping = calculateShipping(subtotal);
+  const shipping = calculateShipping();
   const total = subtotal + shipping;
 
   const db = adminClient();

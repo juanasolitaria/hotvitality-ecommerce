@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 
-import { FREE_SHIPPING_THRESHOLD, FLAT_SHIPPING_RATE } from "@/lib/shipping";
-
 export const metadata: Metadata = {
   title: "Shipping Info | HotVitality",
 };
@@ -22,11 +20,10 @@ export default function ShippingPage() {
             Shipping rates
           </h2>
           <p className="mt-2">
-            Orders of ${FREE_SHIPPING_THRESHOLD} or more ship free within the
-            United States. Orders under that ship for a flat $
-            {FLAT_SHIPPING_RATE.toFixed(2)}, calculated automatically at
-            checkout. There are no membership requirements or hidden fees —
-            the total you see at checkout is the total you pay.
+            Shipping is free on every order within the United States, no
+            minimum required. There are no membership requirements or
+            hidden fees — the total you see at checkout is the total you
+            pay.
           </p>
         </section>
 
