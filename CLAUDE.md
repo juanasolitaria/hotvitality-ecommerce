@@ -24,7 +24,10 @@ At checkout (`src/app/(storefront)/checkout/actions.ts`), `createCheckoutSession
 re-looks-up every product's price server-side (never trusts the client), writes a
 `pending` order + its `order_items` to Supabase, then opens a Stripe Checkout
 Session and redirects the customer there. Stripe hosts the actual payment page —
-card details never touch our server.
+card details never touch our server. The form also requires a required Terms/
+Privacy checkbox (enforced again server-side, not just via the form's
+`required`) and offers an optional, unchecked-by-default SMS marketing opt-in —
+both get recorded on the order (`terms_accepted`, `sms_marketing_consent`).
 
 **Confirming payment.** Stripe redirects back to `/checkout/success?session_id=...`,
 which verifies the session with Stripe before showing anything (never trusts the
@@ -64,8 +67,10 @@ Covers products (CRUD + drag-and-drop image upload to the `product-images` Stora
 bucket), users, and orders across two pages: `/admin/payments` (revenue-focused —
 only counts `paid`/`shipped` orders as revenue) and `/admin/orders` (fulfillment-
 focused — click into `/admin/orders/[id]` for the full shipping address, phone, and
-line items, plus a shortcut button to PirateShip to buy the shipping label). Both
-are still **read-only** on status, see Known gaps.
+line items, each with its own copy-to-clipboard button for pasting into
+PirateShip, plus a shortcut button there to buy the shipping label). The
+dashboard's "Recent Orders" table also links straight into the same detail
+pages. All of this is still **read-only** on status, see Known gaps.
 
 **Auth.** Login/signup is one modal (`src/components/layout/auth-modal.tsx`)
 reachable from anywhere via `useAuthModal()`. `src/middleware.ts` refreshes the
@@ -75,6 +80,13 @@ cookie.
 
 ## Known gaps
 
+- **No new-order notification for the admin.** The admin wants a WhatsApp
+  message to their personal number the moment an order comes in (`paid`),
+  instead of having to keep checking `/admin/orders`. Needs the WhatsApp
+  Business Platform (Cloud API) — this is a new third-party service, so
+  worth confirming the approach before wiring it up. The natural trigger
+  point is the same place as the confirmation email, in the webhook's
+  `checkout.session.completed` handler (`src/app/api/webhooks/stripe/route.ts`).
 - **Order status is a dead end past `paid`.** Neither `/admin/payments` nor
   `/admin/orders` has a UI to move an order `paid` → `shipped` → `refunded`,
   even though `OrderStatus` supports all five states (`pending`, `paid`,
@@ -82,12 +94,6 @@ cookie.
   see above). Also means: no "your order shipped" email exists yet — needs a
   trigger point once a shipping label / fulfillment step exists, plus a new
   email template alongside `order-confirmation.ts`.
-- **Footer links 404.** Contact, Shipping Info, Returns & Refunds, FAQ, Terms,
-  Privacy, and Store Policies (`src/components/layout/footer.tsx`) all point to
-  routes that don't exist yet.
-- **WhatsApp number is a placeholder** — `WHATSAPP_PHONE_NUMBER` in
-  `src/components/layout/whatsapp-button.tsx` needs the real business number
-  before launch.
 - **Admin Server Actions only check auth at the page level.** `admin/layout.tsx`
   gates every `/admin` *page*, but the Server Actions themselves
   (`admin/products/actions.ts`: `saveProduct`, `deleteProduct`,
@@ -131,10 +137,11 @@ cookie.
   directly, that file is only for order confirmations sent from application code.
 - Database schema changes live as numbered files in `supabase/migrations/`, run
   manually in the Supabase SQL Editor (no CLI/migration runner wired up) — bump
-  the number for any new change (`0006_...sql`, etc). Latest is
-  `0005_order_cancelled_status.sql` — if you're seeing "violates check
-  constraint orders_status_check" on a cancelled order, this migration hasn't
-  been run against that Supabase project yet.
+  the number for any new change (`0007_...sql`, etc). Latest is
+  `0006_checkout_consent.sql` (adds `orders.terms_accepted` and
+  `orders.sms_marketing_consent`) — if you're seeing "violates check
+  constraint orders_status_check" on a cancelled order, `0005_order_cancelled_status.sql`
+  hasn't been run against that Supabase project yet either.
 - In dev, testing from a phone/other device requires the LAN IP in
   `next.config.mjs`'s `experimental.serverActions.allowedOrigins` (Next
   rejects Server Action requests from origins it doesn't recognize) — update
