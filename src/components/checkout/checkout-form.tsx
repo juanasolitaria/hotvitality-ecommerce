@@ -9,6 +9,7 @@ import { useCart } from "@/lib/cart-context";
 import { calculateShipping } from "@/lib/shipping";
 import { createCheckoutSession } from "@/app/(storefront)/checkout/actions";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -31,10 +32,15 @@ const BLANK_ADDRESS = {
 };
 
 // Scoped to just this form's inputs (instead of editing the shared
-// Input component, which every other page also uses) so typed text is
-// black and placeholder text is white, overriding the theme's default
-// muted-gray placeholder for this page only.
-const FIELD_CLASS = "text-black placeholder:text-white";
+// Input component, which every other page also uses) so the fields stand
+// out against the page background: white background, black typed text,
+// white placeholder text.
+const FIELD_CLASS = "bg-white text-black placeholder:text-white";
+
+// Loose but real phone validation — digits with optional +, spaces,
+// dashes, and parens, long enough to be an actual phone number. Not full
+// E.164 parsing, just enough to stop obviously-fake input like "asdf".
+const PHONE_PATTERN = "^[+]?[0-9()\\-\\s]{7,20}$";
 
 export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
   const { items, subtotal } = useCart();
@@ -42,6 +48,14 @@ export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
   const [name, setName] = useState(initialName);
   const [email, setEmail] = useState(initialEmail);
   const [address, setAddress] = useState(BLANK_ADDRESS);
+  // Opt-in only, unchecked by default — SMS marketing needs the
+  // customer's clear affirmative consent, unlike marketing email (see the
+  // Privacy Policy's "Marketing communications" section).
+  const [smsConsent, setSmsConsent] = useState(false);
+  // Required — unlike SMS consent, checkout can't proceed without this
+  // one, both here (before we even call the server) and again in
+  // createCheckoutSession (never trust that the client actually enforced it).
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   function updateAddress(field: keyof typeof BLANK_ADDRESS, value: string) {
@@ -50,6 +64,12 @@ export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+
+    if (!termsAccepted) {
+      toast.error("Please accept the Terms and Conditions to continue.");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -66,6 +86,8 @@ export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
           productId: item.product.id,
           quantity: item.quantity,
         })),
+        smsMarketingConsent: smsConsent,
+        termsAccepted,
       });
 
       window.location.href = url;
@@ -144,9 +166,32 @@ export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
             type="tel"
             className={FIELD_CLASS}
             required
+            pattern={PHONE_PATTERN}
+            title="Enter a valid phone number (digits only, 7–20 characters)"
             value={address.phone}
             onChange={(e) => updateAddress("phone", e.target.value)}
           />
+        </div>
+
+        {/* Opt-in checkbox for SMS marketing, right under the phone field
+            it applies to. Unchecked by default — see Privacy Policy for
+            why this needs to be an explicit choice, not a default. */}
+        <div className="flex items-start gap-2.5 rounded-lg border border-border bg-muted/50 p-3">
+          <Checkbox
+            id="smsConsent"
+            checked={smsConsent}
+            onCheckedChange={setSmsConsent}
+            className="mt-0.5"
+          />
+          <Label htmlFor="smsConsent" className="text-sm font-normal text-foreground">
+            Text me order updates and promotional offers from HotVitality.
+            Msg &amp; data rates may apply, message frequency varies. Reply
+            STOP to opt out at any time. See our{" "}
+            <Link href="/privacy" className="text-primary underline">
+              Privacy Policy
+            </Link>
+            .
+          </Label>
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -259,6 +304,26 @@ export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
             <span>${total.toFixed(2)}</span>
           </div>
 
+          <div className="mt-4 flex items-start gap-2.5">
+            <Checkbox
+              id="termsAccepted"
+              checked={termsAccepted}
+              onCheckedChange={setTermsAccepted}
+              className="mt-0.5"
+            />
+            <Label htmlFor="termsAccepted" className="text-sm font-normal text-foreground">
+              I agree to the{" "}
+              <Link href="/terms" className="text-primary underline">
+                Terms and Conditions
+              </Link>{" "}
+              and{" "}
+              <Link href="/privacy" className="text-primary underline">
+                Privacy Policy
+              </Link>
+              .
+            </Label>
+          </div>
+
           {/* Creates a `pending` order in Supabase, then sends the
               customer to Stripe's hosted checkout page to actually pay.
               The order only flips to `paid` once Stripe's webhook
@@ -267,7 +332,7 @@ export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
             type="submit"
             size="lg"
             disabled={submitting}
-            className="mt-6 w-full"
+            className="mt-4 w-full"
           >
             {submitting ? "Redirecting to payment..." : "Continue to Payment"}
           </Button>

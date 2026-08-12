@@ -36,6 +36,10 @@ export interface CheckoutInput {
   customerEmail: string;
   shippingAddress: ShippingAddress;
   items: CheckoutItemInput[];
+  /** Opted in to promotional SMS via the checkbox on the checkout form. */
+  smsMarketingConsent: boolean;
+  /** Checked the required Terms/Privacy checkbox on the checkout form. */
+  termsAccepted: boolean;
 }
 
 // Reads (checking who's logged in, looking up product prices) go through
@@ -43,6 +47,10 @@ export interface CheckoutInput {
 // order/order_items writes go through the admin client — see
 // adminClient() above for why.
 async function createPendingOrder(input: CheckoutInput) {
+  if (!input.termsAccepted) {
+    throw new Error("You must accept the Terms and Conditions to continue.");
+  }
+
   if (input.items.length === 0) {
     throw new Error("Your cart is empty.");
   }
@@ -101,6 +109,8 @@ async function createPendingOrder(input: CheckoutInput) {
       shipping_address: input.shippingAddress,
       subtotal,
       total,
+      sms_marketing_consent: input.smsMarketingConsent,
+      terms_accepted: input.termsAccepted,
     })
     .select("id, created_at")
     .single();
