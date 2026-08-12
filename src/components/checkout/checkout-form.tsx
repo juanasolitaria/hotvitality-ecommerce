@@ -34,8 +34,9 @@ const BLANK_ADDRESS = {
 // Scoped to just this form's inputs (instead of editing the shared
 // Input component, which every other page also uses) so the fields stand
 // out against the page background: white background, black typed text,
-// white placeholder text.
-const FIELD_CLASS = "bg-white text-black placeholder:text-white";
+// white placeholder text. The `!` forces the white to win no matter what
+// else ends up in the merged class list.
+const FIELD_CLASS = "!bg-white text-black placeholder:text-white shadow-sm";
 
 // Loose but real phone validation — digits with optional +, spaces,
 // dashes, and parens, long enough to be an actual phone number. Not full
@@ -120,7 +121,7 @@ export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
     );
   }
 
-  const shipping = calculateShipping(subtotal);
+  const shipping = calculateShipping();
   const total = subtotal + shipping;
 
   return (
@@ -171,27 +172,6 @@ export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
             value={address.phone}
             onChange={(e) => updateAddress("phone", e.target.value)}
           />
-        </div>
-
-        {/* Opt-in checkbox for SMS marketing, right under the phone field
-            it applies to. Unchecked by default — see Privacy Policy for
-            why this needs to be an explicit choice, not a default. */}
-        <div className="flex items-start gap-2.5 rounded-lg border border-border bg-muted/50 p-3">
-          <Checkbox
-            id="smsConsent"
-            checked={smsConsent}
-            onCheckedChange={setSmsConsent}
-            className="mt-0.5"
-          />
-          <Label htmlFor="smsConsent" className="text-sm font-normal text-foreground">
-            Text me order updates and promotional offers from HotVitality.
-            Msg &amp; data rates may apply, message frequency varies. Reply
-            STOP to opt out at any time. See our{" "}
-            <Link href="/privacy" className="text-primary underline">
-              Privacy Policy
-            </Link>
-            .
-          </Label>
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -311,12 +291,37 @@ export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
               onCheckedChange={setTermsAccepted}
               className="mt-0.5"
             />
-            <Label htmlFor="termsAccepted" className="text-sm font-normal text-foreground">
+            {/* `block` overrides Label's own `flex` base style — with
+                multiple children (this plain text plus the embedded
+                links), flex would lay each one out as its own column
+                instead of letting them wrap together as one paragraph. */}
+            <Label htmlFor="termsAccepted" className="block text-sm font-normal text-foreground">
               I agree to the{" "}
               <Link href="/terms" className="text-primary underline">
                 Terms and Conditions
               </Link>{" "}
               and{" "}
+              <Link href="/privacy" className="text-primary underline">
+                Privacy Policy
+              </Link>
+              .
+            </Label>
+          </div>
+
+          {/* Opt-in checkbox for SMS marketing, right below the required
+              Terms checkbox. Unchecked by default — see Privacy Policy for
+              why this needs to be an explicit choice, not a default. */}
+          <div className="mt-3 flex items-start gap-2.5">
+            <Checkbox
+              id="smsConsent"
+              checked={smsConsent}
+              onCheckedChange={setSmsConsent}
+              className="mt-0.5"
+            />
+            <Label htmlFor="smsConsent" className="block text-sm font-normal text-foreground">
+              Text me order updates and promotional offers from HotVitality.
+              Msg &amp; data rates may apply, message frequency varies. Reply
+              STOP to opt out at any time. See our{" "}
               <Link href="/privacy" className="text-primary underline">
                 Privacy Policy
               </Link>
