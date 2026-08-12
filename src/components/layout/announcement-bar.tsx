@@ -3,7 +3,7 @@
 export function AnnouncementBar() {
   return (
     <div className="bg-primary px-4 py-2 text-center text-xs font-medium text-primary-foreground sm:text-sm">
-      &middot;   ✔ Free shipping  ✔ Exclusive Discounts  ✔Shop the essentials  &middot;
+      &middot; Free shipping &middot; Exclusive Discounts &middot; Shop the essentials &middot;
     </div>
   );
 }

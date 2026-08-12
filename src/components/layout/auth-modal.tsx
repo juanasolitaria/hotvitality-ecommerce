@@ -91,17 +91,9 @@ function LoginForm() {
       return;
     }
 
-    // Check the account's role so we can send admins straight to the
-    // dashboard instead of the storefront.
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", data.user.id)
-      .single();
-
     toast.success("Welcome back!");
     close();
-    router.push(profile?.role === "admin" ? "/admin" : "/account");
+    router.push("/");
     router.refresh();
   }
 

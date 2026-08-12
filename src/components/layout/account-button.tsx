@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CircleUserRound, LayoutDashboard, LogOut } from "lucide-react";
@@ -36,28 +36,13 @@ export function AccountButton({ user }: { user: User | null }) {
     );
   }
 
-  // Logged in: hovering reveals Dashboard / Log out.
+  // Logged in: click opens Dashboard / Log out.
   return <LoggedInAccountMenu />;
 }
 
 function LoggedInAccountMenu() {
   const router = useRouter();
-
-  // Same hover-open/close pattern the login/signup dropdown used to use:
-  // a short close delay so the menu survives the cursor crossing the gap
-  // between the button and the popup (the popup renders in a portal,
-  // outside this element).
   const [menuOpen, setMenuOpen] = useState(false);
-  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const openMenu = () => {
-    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
-    setMenuOpen(true);
-  };
-
-  const closeMenu = () => {
-    closeTimeoutRef.current = setTimeout(() => setMenuOpen(false), 150);
-  };
 
   async function handleLogout() {
     const supabase = createClient();
@@ -68,36 +53,29 @@ function LoggedInAccountMenu() {
   }
 
   return (
-    <div onMouseEnter={openMenu} onMouseLeave={closeMenu}>
-      <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-        <DropdownMenuTrigger
-          render={
-            <Button
-              variant="ghost"
-              size="icon-lg"
-              className="text-primary hover:bg-primary/10"
-            />
-          }
-        >
-          <CircleUserRound className="size-6" strokeWidth={1.5} />
-          <span className="sr-only">Account</span>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="end"
-          onMouseEnter={openMenu}
-          onMouseLeave={closeMenu}
-          className="min-w-44"
-        >
-          <DropdownMenuItem render={<Link href="/account" />}>
-            <LayoutDashboard className="size-4" />
-            Dashboard
-          </DropdownMenuItem>
-          <DropdownMenuItem variant="destructive" onClick={handleLogout}>
-            <LogOut className="size-4" />
-            Cerrar sesión
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon-lg"
+            className="text-primary hover:bg-primary/10"
+          />
+        }
+      >
+        <CircleUserRound className="size-6" strokeWidth={1.5} />
+        <span className="sr-only">Account</span>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-44">
+        <DropdownMenuItem render={<Link href="/account" />}>
+          <LayoutDashboard className="size-4" />
+          Dashboard
+        </DropdownMenuItem>
+        <DropdownMenuItem variant="destructive" onClick={handleLogout}>
+          <LogOut className="size-4" />
+          Cerrar sesión
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

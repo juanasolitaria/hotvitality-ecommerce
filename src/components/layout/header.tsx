@@ -86,7 +86,7 @@ export async function Header() {
 
         <div className="ml-auto flex items-center gap-2">
           {/* Account button: icon-only, no label. Logged out, it opens
-              the login/signup modal on click. Logged in, hovering
+              the login/signup modal on click. Logged in, clicking it
               reveals a Dashboard/Log out menu (see AccountButton). */}
           <AccountButton user={user} />
           <CartIndicator />

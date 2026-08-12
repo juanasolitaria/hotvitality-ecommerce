@@ -18,7 +18,7 @@ export function ProductCard({ product }: { product: Product }) {
   }
 
   return (
-    <Card size="sm" className="group relative overflow-hidden pt-0">
+    <Card size="sm" className="group relative h-full overflow-hidden pt-0">
       <Link href={`/product/${product.slug}`} className="block">
         <div className="relative aspect-square w-full overflow-hidden rounded-t-xl bg-muted">
           <Image
@@ -31,9 +31,13 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
       </Link>
 
-      <CardContent>
+      {/* flex-1 so this grows to fill whatever extra height the card
+          picked up from a taller neighbor in the same row — otherwise a
+          card with a shorter name/description ends up with its "Add to
+          Cart" button sitting higher than the rest of the row. */}
+      <CardContent className="flex flex-1 flex-col">
         <Link href={`/product/${product.slug}`}>
-          <h3 className="text-sm font-semibold text-foreground">
+          <h3 className="line-clamp-2 text-sm font-semibold text-foreground">
             {product.name}
           </h3>
         </Link>
