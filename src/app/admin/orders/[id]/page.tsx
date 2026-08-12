@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { ORDER_STATUS_STYLES } from "@/components/admin/order-status-badge";
+import { CopyField } from "@/components/admin/copy-field";
 
 export const metadata: Metadata = {
   title: "Order | HotVitality Admin",
@@ -109,10 +110,16 @@ export default async function AdminOrderDetailPage({
               <CardTitle>Customer</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-1 text-sm">
-              <p className="text-foreground">{order.customerName}</p>
-              <p className="text-muted-foreground">{order.customerEmail}</p>
+              <p className="text-foreground">
+                <CopyField label="Name" value={order.customerName} />
+              </p>
+              <p className="text-muted-foreground">
+                <CopyField label="Email" value={order.customerEmail} />
+              </p>
               {address?.phone && (
-                <p className="text-muted-foreground">{address.phone}</p>
+                <p className="text-muted-foreground">
+                  <CopyField label="Phone" value={address.phone} />
+                </p>
               )}
             </CardContent>
           </Card>
@@ -124,17 +131,26 @@ export default async function AdminOrderDetailPage({
             <CardContent className="text-sm text-muted-foreground">
               {address ? (
                 <address className="not-italic">
-                  {address.line1}
-                  <br />
+                  <div>
+                    <CopyField label="Address line 1" value={address.line1} />
+                  </div>
                   {address.line2 && (
-                    <>
-                      {address.line2}
-                      <br />
-                    </>
+                    <div>
+                      <CopyField label="Address line 2" value={address.line2} />
+                    </div>
                   )}
-                  {address.city}, {address.state} {address.postalCode}
-                  <br />
-                  {address.country}
+                  <div>
+                    <CopyField label="City" value={address.city} />
+                  </div>
+                  <div>
+                    <CopyField label="State" value={address.state} />
+                  </div>
+                  <div>
+                    <CopyField label="Postal code" value={address.postalCode} />
+                  </div>
+                  <div>
+                    <CopyField label="Country" value={address.country} />
+                  </div>
                 </address>
               ) : (
                 <p>No shipping address on file.</p>

@@ -93,21 +93,31 @@ export default async function AdminDashboardPage() {
             </TableHeader>
             <TableBody>
               {recentOrders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">
-                    {order.id.slice(0, 8)}
+                <TableRow key={order.id} className="cursor-pointer">
+                  <TableCell className="p-0 font-medium">
+                    <Link href={`/admin/orders/${order.id}`} className="block px-4 py-3">
+                      {order.id.slice(0, 8)}
+                    </Link>
                   </TableCell>
-                  <TableCell>{order.customerName}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={ORDER_STATUS_STYLES[order.status]}
-                    >
-                      {order.status}
-                    </Badge>
+                  <TableCell className="p-0">
+                    <Link href={`/admin/orders/${order.id}`} className="block px-4 py-3">
+                      {order.customerName}
+                    </Link>
                   </TableCell>
-                  <TableCell className="text-right">
-                    ${order.total.toFixed(2)}
+                  <TableCell className="p-0">
+                    <Link href={`/admin/orders/${order.id}`} className="block px-4 py-3">
+                      <Badge
+                        variant="outline"
+                        className={ORDER_STATUS_STYLES[order.status]}
+                      >
+                        {order.status}
+                      </Badge>
+                    </Link>
+                  </TableCell>
+                  <TableCell className="p-0 text-right">
+                    <Link href={`/admin/orders/${order.id}`} className="block px-4 py-3">
+                      ${order.total.toFixed(2)}
+                    </Link>
                   </TableCell>
                 </TableRow>
               ))}
