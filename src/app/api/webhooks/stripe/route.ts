@@ -4,6 +4,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 
 import { stripe } from "@/lib/stripe";
 import { sendOrderConfirmationEmail } from "@/lib/email/order-confirmation";
+import { sendAdminOrderNotification } from "@/lib/telegram";
 
 // Stripe calls this URL directly (not the browser), so there's no user
 // session/cookies here — it has to use the service-role client. The
@@ -46,6 +47,11 @@ export async function POST(request: Request) {
       // .select() after .update() returns the updated row (plus its items,
       // via the order_items relationship) in the same round trip — enough
       // to build the confirmation email without a second query.
+      // The .eq("status", "pending") guard makes this idempotent: Stripe
+      // can and does redeliver the same event more than once, and without
+      // this filter a redelivery would re-send the confirmation email to
+      // the customer every time. Once an order is already "paid", the
+      // filter matches zero rows and .maybeSingle() just returns null.
       const { data: order, error } = await db
         .from("orders")
         .update({
@@ -56,10 +62,11 @@ export async function POST(request: Request) {
               : session.payment_intent?.id ?? null,
         })
         .eq("id", orderId)
+        .eq("status", "pending")
         .select(
-          "customer_name, customer_email, subtotal, total, order_items(product_name, unit_price, quantity)"
+          "customer_name, customer_email, subtotal, total, shipping_address, order_items(product_name, unit_price, quantity)"
         )
-        .single();
+        .maybeSingle();
 
       // Returning a 500 here (instead of swallowing the error) makes
       // Stripe automatically retry this webhook on its usual backoff
@@ -69,18 +76,32 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: error.message }, { status: 500 });
       }
 
-      // Best-effort: the order is already paid at this point, which is
-      // what matters. sendOrderConfirmationEmail logs its own errors
-      // instead of throwing, so a Resend outage doesn't turn into a
-      // Stripe webhook retry.
-      await sendOrderConfirmationEmail({
-        orderId,
-        customerName: order.customer_name,
-        customerEmail: order.customer_email,
-        subtotal: order.subtotal,
-        total: order.total,
-        items: order.order_items,
-      });
+      // order is null when this event was already processed (order was
+      // no longer "pending") — a Stripe redelivery, so skip both sends.
+      if (order) {
+        // Best-effort, run together: the order is already paid at this
+        // point, which is what matters. Both functions log their own
+        // errors instead of throwing, so a Resend or Telegram outage
+        // doesn't turn into a Stripe webhook retry.
+        await Promise.all([
+          sendOrderConfirmationEmail({
+            orderId,
+            customerName: order.customer_name,
+            customerEmail: order.customer_email,
+            subtotal: order.subtotal,
+            total: order.total,
+            items: order.order_items,
+          }),
+          sendAdminOrderNotification({
+            orderId,
+            customerName: order.customer_name,
+            customerEmail: order.customer_email,
+            total: order.total,
+            items: order.order_items,
+            shippingAddress: order.shipping_address,
+          }),
+        ]);
+      }
     }
   }
 
