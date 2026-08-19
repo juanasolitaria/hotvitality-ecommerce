@@ -11,7 +11,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ORDER_STATUS_STYLES } from "@/components/admin/order-status-badge";
+import {
+  ORDER_STATUS_LABELS,
+  ORDER_STATUS_STYLES,
+} from "@/components/admin/order-status-badge";
 
 export const metadata: Metadata = {
   title: "Payments | HotVitality Admin",
@@ -21,9 +24,16 @@ export default async function AdminPaymentsPage() {
   const orders = await getOrders();
   // Only orders that were actually paid for and not since refunded count
   // as revenue — `pending` never got charged, and `cancelled` never will.
+  // `awaiting_shipping_label` is included: that's still collected money,
+  // just not shipped yet.
   const revenue = orders.reduce(
     (total, order) =>
-      total + (order.status === "paid" || order.status === "shipped" ? order.total : 0),
+      total +
+      (order.status === "paid" ||
+      order.status === "awaiting_shipping_label" ||
+      order.status === "shipped"
+        ? order.total
+        : 0),
     0
   );
 
@@ -40,12 +50,12 @@ export default async function AdminPaymentsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Order</TableHead>
-                <TableHead>Customer</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Items</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="px-4">Order</TableHead>
+                <TableHead className="px-4">Customer</TableHead>
+                <TableHead className="px-4">Date</TableHead>
+                <TableHead className="px-4">Items</TableHead>
+                <TableHead className="px-4">Status</TableHead>
+                <TableHead className="px-4 text-right">Total</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -73,7 +83,7 @@ export default async function AdminPaymentsPage() {
                       variant="outline"
                       className={ORDER_STATUS_STYLES[order.status]}
                     >
-                      {order.status}
+                      {ORDER_STATUS_LABELS[order.status]}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right font-medium">

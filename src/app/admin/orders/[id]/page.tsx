@@ -8,8 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ORDER_STATUS_STYLES } from "@/components/admin/order-status-badge";
+import {
+  ORDER_STATUS_LABELS,
+  ORDER_STATUS_STYLES,
+} from "@/components/admin/order-status-badge";
 import { CopyField } from "@/components/admin/copy-field";
+import { TrackingNumberDialog } from "@/components/admin/tracking-number-dialog";
 
 export const metadata: Metadata = {
   title: "Order | HotVitality Admin",
@@ -48,7 +52,7 @@ export default async function AdminOrderDetailPage({
         </div>
         <div className="flex items-center gap-3">
           <Badge variant="outline" className={ORDER_STATUS_STYLES[order.status]}>
-            {order.status}
+            {ORDER_STATUS_LABELS[order.status]}
           </Badge>
           {/* PirateShip has no way to prefill a shipment from a URL, so
               this just gets the admin there fast — the address and items
@@ -66,6 +70,14 @@ export default async function AdminOrderDetailPage({
             <Truck />
             Ship on PirateShip
           </Button>
+          {!order.trackingNumber &&
+            (order.status === "paid" ||
+              order.status === "awaiting_shipping_label") && (
+              <TrackingNumberDialog orderId={order.id} />
+            )}
+          {order.trackingNumber && (
+            <CopyField label="Tracking number" value={order.trackingNumber} />
+          )}
         </div>
       </div>
 

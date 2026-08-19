@@ -10,6 +10,7 @@ interface OrderRow {
   status: OrderStatus;
   total: number;
   created_at: string;
+  tracking_number: string | null;
   order_items: { quantity: number }[];
 }
 
@@ -22,6 +23,7 @@ function mapOrder(row: OrderRow): Order {
     total: row.total,
     status: row.status,
     date: row.created_at.slice(0, 10),
+    trackingNumber: row.tracking_number,
   };
 }
 
@@ -35,7 +37,7 @@ export async function getOrders(): Promise<Order[]> {
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id, customer_name, customer_email, status, total, created_at, order_items(quantity)"
+      "id, customer_name, customer_email, status, total, created_at, tracking_number, order_items(quantity)"
     )
     .order("created_at", { ascending: false })
     .returns<OrderRow[]>();
@@ -59,7 +61,7 @@ export async function getOrderById(id: string): Promise<OrderDetail | null> {
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id, customer_name, customer_email, status, total, subtotal, created_at, shipping_address, order_items(product_name, unit_price, quantity)"
+      "id, customer_name, customer_email, status, total, subtotal, created_at, shipping_address, tracking_number, order_items(product_name, unit_price, quantity)"
     )
     .eq("id", id)
     .single<OrderDetailRow>();

@@ -30,6 +30,7 @@ export interface CartItem {
 export type OrderStatus =
   | "pending"
   | "paid"
+  | "awaiting_shipping_label"
   | "shipped"
   | "refunded"
   | "cancelled";
@@ -53,6 +54,11 @@ export interface Order {
   status: OrderStatus;
   /** ISO date string, e.g. "2026-07-12". */
   date: string;
+  /** Set once the admin inserts it on the order detail page. Whether an
+   *  order has "shipped" is read from this being non-null, not from
+   *  `status` — `status` stays "paid" even after a tracking number is
+   *  added. Needed on the list view too, for the Shipping Status column. */
+  trackingNumber: string | null;
 }
 
 // Everything Order has, plus what the payments list doesn't need but a

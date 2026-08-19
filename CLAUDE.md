@@ -33,9 +33,29 @@ both get recorded on the order (`terms_accepted`, `sms_marketing_consent`).
 which verifies the session with Stripe before showing anything (never trusts the
 URL alone). The order is only marked `paid` by the Stripe webhook
 (`src/app/api/webhooks/stripe/route.ts`, `checkout.session.completed`), which also
-fires the order-confirmation email (`src/lib/email/order-confirmation.ts`) as a
-best-effort side effect — a Resend failure is logged, not thrown, so it can't turn
-into a Stripe webhook retry loop.
+fires the order-confirmation email (`src/lib/email/order-confirmation.ts`) and a
+Telegram notification to the admin group (`src/lib/telegram.ts`) as best-effort
+side effects — failures are logged, not thrown, so they can't turn into a Stripe
+webhook retry loop.
+
+**Shipping a paid order.** `status` (`paid`/`cancelled`/`pending`/etc.) means
+exactly what it always has and never changes to `shipped` — what's new is a
+`tracking_number` column, set via an "Insert Tracking Number" button on
+`/admin/orders/[id]` (shown once an order is `paid` and has no tracking number
+yet), backed by `setTrackingNumber` in `src/app/admin/orders/actions.ts` (gated by
+its own `requireAdmin()` check, unlike `admin/products/actions.ts`, see Known
+gaps). Submitting it only sets `tracking_number` and emails it to the customer
+(`src/lib/email/shipping-confirmation.ts`, which also best-effort-guesses the
+carrier — UPS/USPS/FedEx — from the tracking number's format via
+`src/lib/shipping-carrier.ts`, and links to that carrier's tracking page) —
+unlike the webhook-triggered emails, this one throws on failure so the admin
+actually sees it. Whether an order counts as "shipped" is read from
+`tracking_number` being non-null, not from `status` — see `getShippingStatus` in
+`src/components/admin/order-status-badge.tsx`, used for the "Shipping Status"
+column on `/admin/orders` ("Awaiting label" for a `paid` order with no tracking
+number yet, "Shipped" once it has one). `awaiting_shipping_label`/`shipped` still
+exist in `OrderStatus`/the DB constraint for flexibility, but nothing writes them
+automatically.
 
 **Cancelling/abandoning checkout.** An order shouldn't sit on `pending`
 forever just because the customer didn't pay. If they click Stripe's own
@@ -65,12 +85,14 @@ that's safe here.
 in → redirect to login; logged in but `profiles.role !== 'admin'` → redirect home.
 Covers products (CRUD + drag-and-drop image upload to the `product-images` Storage
 bucket), users, and orders across two pages: `/admin/payments` (revenue-focused —
-only counts `paid`/`shipped` orders as revenue) and `/admin/orders` (fulfillment-
-focused — click into `/admin/orders/[id]` for the full shipping address, phone, and
-line items, each with its own copy-to-clipboard button for pasting into
-PirateShip, plus a shortcut button there to buy the shipping label). The
-dashboard's "Recent Orders" table also links straight into the same detail
-pages. All of this is still **read-only** on status, see Known gaps.
+counts `paid`/`awaiting_shipping_label`/`shipped` orders as revenue) and
+`/admin/orders` (fulfillment-focused — click into `/admin/orders/[id]` for the full
+shipping address, phone, and line items, each with its own copy-to-clipboard button
+for pasting into PirateShip, plus a shortcut button there to buy the shipping label
+and, once paid, the "Insert Tracking Number" button described in "Shipping a paid
+order" above). The dashboard's "Recent Orders" table also links straight into the
+same detail pages. `refunded` is still a dead end — nothing in the UI writes it,
+see Known gaps.
 
 **Auth.** Login/signup is one modal (`src/components/layout/auth-modal.tsx`)
 reachable from anywhere via `useAuthModal()`. `src/middleware.ts` refreshes the
@@ -80,27 +102,17 @@ cookie.
 
 ## Known gaps
 
-- **No new-order notification for the admin.** The admin wants a WhatsApp
-  message to their personal number the moment an order comes in (`paid`),
-  instead of having to keep checking `/admin/orders`. Needs the WhatsApp
-  Business Platform (Cloud API) — this is a new third-party service, so
-  worth confirming the approach before wiring it up. The natural trigger
-  point is the same place as the confirmation email, in the webhook's
-  `checkout.session.completed` handler (`src/app/api/webhooks/stripe/route.ts`).
-- **Order status is a dead end past `paid`.** Neither `/admin/payments` nor
-  `/admin/orders` has a UI to move an order `paid` → `shipped` → `refunded`,
-  even though `OrderStatus` supports all five states (`pending`, `paid`,
-  `shipped`, `refunded`, `cancelled` — `pending`→`cancelled` is now automatic,
-  see above). Also means: no "your order shipped" email exists yet — needs a
-  trigger point once a shipping label / fulfillment step exists, plus a new
-  email template alongside `order-confirmation.ts`.
-- **Admin Server Actions only check auth at the page level.** `admin/layout.tsx`
-  gates every `/admin` *page*, but the Server Actions themselves
-  (`admin/products/actions.ts`: `saveProduct`, `deleteProduct`,
-  `uploadProductImages`) don't independently verify the caller is an admin — they
-  rely on the fact that only the gated admin UI calls them. Server Actions are
-  reachable as their own endpoint, so this should get an explicit admin check
-  before this goes live.
+- **`refunded` is a dead end.** Nothing in the UI moves an order to
+  `refunded`, even though `OrderStatus` supports it (`paid` → `shipped` is now
+  wired up, see "Shipping a paid order" above; `pending`→`cancelled` is
+  automatic, see "Cancelling/abandoning checkout" above that).
+- **Some admin Server Actions only check auth at the page level.**
+  `admin/layout.tsx` gates every `/admin` *page*, but `admin/products/actions.ts`
+  (`saveProduct`, `deleteProduct`, `uploadProductImages`) doesn't independently
+  verify the caller is an admin — it relies on the fact that only the gated
+  admin UI calls it. Server Actions are reachable as their own endpoint, so this
+  should get an explicit admin check before this goes live — `admin/orders/actions.ts`'s
+  `requireAdmin()` is the pattern to copy over.
 - No automated tests yet.
 
 ## Conventions
@@ -137,11 +149,12 @@ cookie.
   directly, that file is only for order confirmations sent from application code.
 - Database schema changes live as numbered files in `supabase/migrations/`, run
   manually in the Supabase SQL Editor (no CLI/migration runner wired up) — bump
-  the number for any new change (`0007_...sql`, etc). Latest is
-  `0006_checkout_consent.sql` (adds `orders.terms_accepted` and
-  `orders.sms_marketing_consent`) — if you're seeing "violates check
-  constraint orders_status_check" on a cancelled order, `0005_order_cancelled_status.sql`
-  hasn't been run against that Supabase project yet either.
+  the number for any new change (`0008_...sql`, etc). Latest is
+  `0007_awaiting_shipping_label.sql` (adds `'awaiting_shipping_label'` to the
+  `orders_status_check` constraint and `orders.tracking_number`) — if you're
+  seeing "violates check constraint orders_status_check" on an order you just
+  tried to mark awaiting a label, this migration hasn't been run against that
+  Supabase project yet.
 - In dev, testing from a phone/other device requires the LAN IP in
   `next.config.mjs`'s `experimental.serverActions.allowedOrigins` (Next
   rejects Server Action requests from origins it doesn't recognize) — update
