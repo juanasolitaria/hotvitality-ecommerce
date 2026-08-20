@@ -7,16 +7,16 @@ import { cn } from "@/lib/utils";
 
 const SLIDES = [
   {
-    src: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=1200&q=80",
-    alt: "Person stretching outdoors at sunset, representing everyday wellness",
+    src: "/hero/biqfel-portada.png",
+    alt: "BIQ-FEL bottle with a special offer badge",
   },
   {
-    src: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=80",
-    alt: "A colorful bowl of fresh salad and vegetables",
+    src: "/hero/lineup.png",
+    alt: "BIQ-FEL and other HotVitality supplement bottles lined up",
   },
   {
-    src: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=1200&q=80",
-    alt: "Person doing a core workout on a mat",
+    src: "/hero/special-offer.jpg",
+    alt: "Special offer promo for the HotVitality supplement lineup",
   },
 ];
 

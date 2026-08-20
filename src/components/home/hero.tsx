@@ -12,13 +12,12 @@ export function Hero() {
         <div className="order-2 text-center md:order-1 md:text-left">
         {/* 1. H1 más grande (pasó de 2xl/3xl/4xl a 4xl/5xl/6xl) */}
         <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl md:text-6xl">
-          Fuel Your Everyday Vitality
+          Natural Supplements for Your Everyday Vitality
         </h1>
 
         {/* 2. P más grande (pasó de text-sm/text-base a text-lg/text-xl) */}
         <p className="mx-auto mt-4 max-w-lg text-lg text-white/80 sm:text-xl md:mx-0">
-          Premium, third-party tested supplements designed to support your
-          energy, immunity, and long-term wellness — one habit at a time.
+          Good energy starts with what you put in your body. We keep it simple, natural, and effective.
         </p>
           {/* "secondary" (cream on dark green text) stands out clearly
               against the dark gradient background, unlike the default
