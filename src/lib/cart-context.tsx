@@ -17,6 +17,8 @@ interface CartContextValue {
   itemCount: number;
   subtotal: number;
   addItem: (product: Product, quantity?: number) => void;
+  /** Replaces the whole cart with just this product — used by "Buy Now". */
+  buyNow: (product: Product, quantity?: number) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -67,6 +69,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   }
 
+  function buyNow(product: Product, quantity = 1) {
+    setItems([{ product, quantity }]);
+  }
+
   function removeItem(productId: string) {
     setItems((prev) => prev.filter((item) => item.product.id !== productId));
   }
@@ -107,6 +113,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         itemCount,
         subtotal,
         addItem,
+        buyNow,
         removeItem,
         updateQuantity,
         clearCart,

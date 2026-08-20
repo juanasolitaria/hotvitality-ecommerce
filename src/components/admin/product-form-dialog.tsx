@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type ReactElement } from "react";
+import { useRef, useState, type ReactElement } from "react";
+import { Bold, List } from "lucide-react";
 
 import type { Product } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ export function ProductFormDialog({
   trigger,
 }: ProductFormDialogProps) {
   const [open, setOpen] = useState(false);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const [form, setForm] = useState(() =>
     product
       ? {
@@ -80,6 +82,68 @@ export function ProductFormDialog({
           : EMPTY_FORM
       );
     }
+  }
+
+  // Wraps the selected text in the description textarea with `**`, or —
+  // if nothing's selected — inserts an empty `****` pair with the cursor
+  // in the middle, ready to type. `/product` renders `**text**` as bold
+  // (see product-info.tsx), a lightweight stand-in for a full rich-text
+  // editor.
+  function toggleBold() {
+    const el = descriptionRef.current;
+    if (!el) return;
+
+    const { selectionStart, selectionEnd, value } = el;
+    const selected = value.slice(selectionStart, selectionEnd);
+    const before = value.slice(0, selectionStart);
+    const after = value.slice(selectionEnd);
+
+    const newValue = selected
+      ? `${before}**${selected}**${after}`
+      : `${before}****${after}`;
+    const newStart = selectionStart + 2;
+    const newEnd = selected ? selectionEnd + 2 : newStart;
+
+    setForm((prev) => ({ ...prev, description: newValue }));
+
+    // Wait for React to commit the new value before moving the cursor —
+    // setSelectionRange on the old value would be immediately overwritten.
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(newStart, newEnd);
+    });
+  }
+
+  // Toggles a `- ` bullet prefix on every line touched by the selection
+  // (or just the current line, if nothing's selected) — adds it to lines
+  // that don't have it yet, strips it from ones that do. `/product`
+  // groups consecutive `- ` lines into a real <ul> (see product-info.tsx).
+  function toggleBulletList() {
+    const el = descriptionRef.current;
+    if (!el) return;
+
+    const { selectionStart, selectionEnd, value } = el;
+    const lineStart = value.lastIndexOf("\n", selectionStart - 1) + 1;
+    const nextBreak = value.indexOf("\n", selectionEnd);
+    const lineEnd = nextBreak === -1 ? value.length : nextBreak;
+
+    const before = value.slice(0, lineStart);
+    const after = value.slice(lineEnd);
+    const newLines = value
+      .slice(lineStart, lineEnd)
+      .split("\n")
+      .map((line) => (line.startsWith("- ") ? line.slice(2) : `- ${line}`))
+      .join("\n");
+
+    const newValue = before + newLines + after;
+    setForm((prev) => ({ ...prev, description: newValue }));
+
+    const newStart = lineStart;
+    const newEnd = lineStart + newLines.length;
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(newStart, newEnd);
+    });
   }
 
   function handleSubmit(e: React.FormEvent) {
@@ -151,10 +215,32 @@ export function ProductFormDialog({
 
             <div className="flex flex-col gap-1.5">
               <Label htmlFor="description">Full description</Label>
+              <div className="flex items-center gap-1 rounded-t-lg border border-b-0 border-input bg-muted/40 px-1.5 py-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={toggleBold}
+                  aria-label="Bold"
+                >
+                  <Bold className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={toggleBulletList}
+                  aria-label="Bullet list"
+                >
+                  <List className="size-4" />
+                </Button>
+              </div>
               <Textarea
+                ref={descriptionRef}
                 id="description"
                 required
                 rows={3}
+                className="rounded-t-none"
                 value={form.description}
                 onChange={(e) =>
                   setForm((prev) => ({
@@ -163,6 +249,11 @@ export function ProductFormDialog({
                   }))
                 }
               />
+              <p className="text-xs text-muted-foreground">
+                Select text and click Bold to emphasize it, or click the
+                list icon to turn the current line(s) into bullet points —
+                both show up formatted on the product page.
+              </p>
             </div>
 
             <div className="flex flex-col gap-1.5">

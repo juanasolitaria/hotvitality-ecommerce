@@ -36,12 +36,17 @@ export function ProductCard({ product }: { product: Product }) {
           card with a shorter name/description ends up with its "Add to
           Cart" button sitting higher than the rest of the row. */}
       <CardContent className="flex flex-1 flex-col">
+        {/* Clamped to exactly 1 line each (not 2) so every card's
+            name+description block is always the same real height —
+            no reserved/empty space needed, and the price right below
+            sits at the same height across a row without an awkward gap
+            for shorter cards. */}
         <Link href={`/product/${product.slug}`}>
-          <h3 className="line-clamp-2 text-sm font-semibold text-foreground">
+          <h3 className="line-clamp-1 text-sm font-semibold text-foreground">
             {product.name}
           </h3>
         </Link>
-        <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+        <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
           {product.shortDescription}
         </p>
         <p className="mt-2 text-sm font-semibold text-primary">
