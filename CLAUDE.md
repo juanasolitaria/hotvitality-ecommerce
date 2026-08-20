@@ -81,6 +81,23 @@ Both the checkout action and the webhook use a service-role Supabase client
 see the comments at the top of `checkout/actions.ts` and the webhook route for why
 that's safe here.
 
+**Contact form.** `/contact` (`src/components/contact/contact-form.tsx`) emails
+the message straight to `hotvitality@gmail.com` via Resend
+(`src/lib/email/contact-message.ts`, `sendContactMessage` in
+`contact/actions.ts`) — nothing is stored in the database, the email itself is
+the record, and it sets `replyTo` to the sender's address so replying in an
+email client goes straight to them. User-supplied fields are HTML-escaped
+before going into the email (this one lands in the *admin's* inbox, unlike the
+customer-facing templates, so unescaped input would be a real injection risk,
+not just self-XSS). Rate-limited by IP the same way as checkout — see below.
+
+**Anonymous-input rate limiting.** Both checkout (`createCheckoutSession`) and
+the contact form share `checkIpRateLimit`/`getClientIp` in `src/lib/rate-limit.ts`:
+best-effort, counts recent rows from the same IP in a given table
+(`orders.client_ip` / `contact_rate_limits.client_ip`) and rejects once a
+threshold is hit. A determined attacker can rotate IPs — this only raises the
+bar against casual scripted abuse, see Known gaps.
+
 **Admin dashboard** (`/admin/*`) is gated in `src/app/admin/layout.tsx`: not logged
 in → redirect to login; logged in but `profiles.role !== 'admin'` → redirect home.
 Covers products (CRUD + drag-and-drop image upload to the `product-images` Storage
@@ -106,14 +123,50 @@ cookie.
   `refunded`, even though `OrderStatus` supports it (`paid` → `shipped` is now
   wired up, see "Shipping a paid order" above; `pending`→`cancelled` is
   automatic, see "Cancelling/abandoning checkout" above that).
-- **Some admin Server Actions only check auth at the page level.**
-  `admin/layout.tsx` gates every `/admin` *page*, but `admin/products/actions.ts`
-  (`saveProduct`, `deleteProduct`, `uploadProductImages`) doesn't independently
-  verify the caller is an admin — it relies on the fact that only the gated
-  admin UI calls it. Server Actions are reachable as their own endpoint, so this
-  should get an explicit admin check before this goes live — `admin/orders/actions.ts`'s
-  `requireAdmin()` is the pattern to copy over.
 - No automated tests yet.
+- **Rate limiting is best-effort only.** `checkIpRateLimit` (`src/lib/rate-limit.ts`)
+  caps repeated checkout attempts (5 per 10 min) and contact-form submissions (3
+  per 10 min) per IP, but a determined attacker can just rotate IPs — this raises
+  the bar against casual scripted abuse, it isn't real bot protection. A proper
+  fix (Turnstile/hCaptcha or similar) would be a new third-party service, worth
+  discussing before adding.
+
+## Security review history
+
+A full pass (2026-08-19) found and fixed three real issues, in order of
+severity:
+
+1. **Critical — self-promotion to admin.** `profiles_update_own`
+   (`0001_init.sql`) let any logged-in user update their own `profiles` row —
+   RLS restricts which *rows* you can touch, not which *columns*, so nothing
+   stopped that same update from also setting `role: 'admin'`. Fixed in
+   `0008_security_hardening.sql` with a `before update` trigger
+   (`prevent_role_self_escalation`) that rejects any `role` change unless the
+   session making it is already an admin. Nothing in the app updates `role`
+   today (`/admin/users` is read-only), so this doesn't affect any real
+   feature.
+2. **High — fake orders via the public anon key.** `orders_insert_own_or_guest`
+   and `order_items_insert_via_order` (`0001_init.sql`) let *anyone*, no login
+   required, insert arbitrary "order" rows straight through Supabase's REST
+   API with the public anon key — any price, any items, no real product link,
+   no payment. The app itself never used these policies (every real write
+   goes through a service-role client, see "Guest orders vs. RLS" above), so
+   they were pure attack surface. Dropped in `0008_security_hardening.sql`.
+3. **Medium — admin Server Actions only checked auth at the page level.**
+   `admin/layout.tsx` gates every `/admin` *page*, but `admin/products/actions.ts`
+   (`saveProduct`, `deleteProduct`, `uploadProductImages`) didn't independently
+   verify the caller was an admin — Server Actions are reachable as their own
+   endpoint regardless of which page rendered the button that called them.
+   Fixed by adding the same `requireAdmin()` check `admin/orders/actions.ts`
+   already used.
+
+Also hardened as defense-in-depth, not in response to a specific exploit:
+`checkout/actions.ts` now validates cart quantities are whole numbers between
+1–99 (previously unvalidated — a negative or absurd quantity would only have
+been caught by a DB check constraint, after already reaching Stripe pricing
+math), and added the per-IP checkout rate limit noted above (see Known gaps
+for its limits). Migration `0008_security_hardening.sql` needs to be run in
+the Supabase SQL Editor for any of this to take effect.
 
 ## Conventions
 
@@ -149,12 +202,17 @@ cookie.
   directly, that file is only for order confirmations sent from application code.
 - Database schema changes live as numbered files in `supabase/migrations/`, run
   manually in the Supabase SQL Editor (no CLI/migration runner wired up) — bump
-  the number for any new change (`0008_...sql`, etc). Latest is
-  `0007_awaiting_shipping_label.sql` (adds `'awaiting_shipping_label'` to the
-  `orders_status_check` constraint and `orders.tracking_number`) — if you're
-  seeing "violates check constraint orders_status_check" on an order you just
-  tried to mark awaiting a label, this migration hasn't been run against that
-  Supabase project yet.
+  the number for any new change (`0010_...sql`, etc). Latest is
+  `0009_contact_form.sql` (adds `contact_rate_limits`, used only for rate
+  limiting the contact form — see "Contact form" above). Before that,
+  `0008_security_hardening.sql` (see "Security review history" above — drops
+  the exploitable anon-insert policies on `orders`/`order_items`, adds
+  `orders.client_ip` for rate limiting, and adds a trigger blocking non-admins
+  from changing `profiles.role`), and before that `0007_awaiting_shipping_label.sql`
+  adds `'awaiting_shipping_label'` to the `orders_status_check` constraint and
+  `orders.tracking_number` — if you're seeing "violates check constraint
+  orders_status_check" on an order you just tried to mark awaiting a label,
+  that one hasn't been run against that Supabase project yet.
 - In dev, testing from a phone/other device requires the LAN IP in
   `next.config.mjs`'s `experimental.serverActions.allowedOrigins` (Next
   rejects Server Action requests from origins it doesn't recognize) — update

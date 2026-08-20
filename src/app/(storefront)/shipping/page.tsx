@@ -14,8 +14,8 @@ export default function ShippingPage() {
         Last updated August 2026
       </p>
 
-      <div className="mt-8 space-y-6 text-sm leading-relaxed text-muted-foreground">
-        <section>
+      <div className="mt-8 rounded-2xl border border-border bg-card text-sm leading-relaxed text-muted-foreground">
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             Shipping rates
           </h2>
@@ -27,7 +27,7 @@ export default function ShippingPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             Where we ship
           </h2>
@@ -38,7 +38,7 @@ export default function ShippingPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             Processing time
           </h2>
@@ -50,7 +50,7 @@ export default function ShippingPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             Delivery time
           </h2>
@@ -62,7 +62,7 @@ export default function ShippingPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             Order tracking
           </h2>
@@ -74,7 +74,7 @@ export default function ShippingPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             Lost, delayed, or damaged packages
           </h2>
@@ -86,7 +86,7 @@ export default function ShippingPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             Questions?
           </h2>

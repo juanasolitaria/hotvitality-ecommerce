@@ -6,6 +6,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { stripe } from "@/lib/stripe";
 import { calculateShipping } from "@/lib/shipping";
+import { checkIpRateLimit, getClientIp } from "@/lib/rate-limit";
 import type { ShippingAddress } from "@/lib/types";
 
 // Postgres re-checks the `orders_select_own_or_admin` policy against a
@@ -55,6 +56,15 @@ async function createPendingOrder(input: CheckoutInput) {
     throw new Error("Your cart is empty.");
   }
 
+  // The cart lives in localStorage, so quantities arrive unvalidated —
+  // nothing stops a crafted request from sending a negative, fractional,
+  // or absurdly large one straight to this Server Action.
+  for (const item of input.items) {
+    if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 99) {
+      throw new Error("Quantities must be whole numbers between 1 and 99.");
+    }
+  }
+
   const supabase = await createClient();
 
   const {
@@ -96,6 +106,19 @@ async function createPendingOrder(input: CheckoutInput) {
   const total = subtotal + shipping;
 
   const db = adminClient();
+  const clientIp = await getClientIp();
+  // Nothing about this Server Action requires being logged in, so without
+  // this a script could call it in a loop to flood the orders table with
+  // junk pending rows and burn through Stripe's API rate limits for this
+  // account.
+  await checkIpRateLimit({
+    db,
+    table: "orders",
+    clientIp,
+    windowMinutes: 10,
+    maxAttempts: 5,
+    errorMessage: "Too many checkout attempts. Please try again in a few minutes.",
+  });
 
   // Orders start `pending`. Stripe's webhook flips this to `paid` once
   // the customer actually completes payment on Stripe's hosted page —
@@ -111,6 +134,7 @@ async function createPendingOrder(input: CheckoutInput) {
       total,
       sms_marketing_consent: input.smsMarketingConsent,
       terms_accepted: input.termsAccepted,
+      client_ip: clientIp,
     })
     .select("id, created_at")
     .single();

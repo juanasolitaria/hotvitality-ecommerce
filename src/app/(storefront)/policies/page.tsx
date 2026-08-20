@@ -40,8 +40,8 @@ export default function PoliciesPage() {
         policies.
       </p>
 
-      <div className="mt-8 space-y-6 text-sm leading-relaxed text-muted-foreground">
-        <section>
+      <div className="mt-8 rounded-2xl border border-border bg-card text-sm leading-relaxed text-muted-foreground">
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             Supplement safety
           </h2>
@@ -56,7 +56,7 @@ export default function PoliciesPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             Payment
           </h2>
@@ -68,7 +68,7 @@ export default function PoliciesPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             Order changes &amp; cancellations
           </h2>
@@ -79,7 +79,7 @@ export default function PoliciesPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             Marketing communications
           </h2>

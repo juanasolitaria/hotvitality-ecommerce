@@ -22,8 +22,10 @@ export function CartItem({
 
   return (
     // Stacks the price/remove row under the product info on mobile;
-    // lays everything out in one row from `sm` up.
-    <div className="flex flex-col gap-4 border-b border-border py-4 sm:flex-row sm:items-center">
+    // lays everything out in one row from `sm` up. No border here — the
+    // parent list applies `divide-y` instead, so items sit inside one
+    // shared card with dividers only *between* them.
+    <div className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center">
       <Link
         href={`/product/${product.slug}`}
         className="relative size-20 shrink-0 overflow-hidden rounded-lg bg-muted"

@@ -14,8 +14,8 @@ export default function PrivacyPage() {
         Last updated August 2026
       </p>
 
-      <div className="mt-8 space-y-6 text-sm leading-relaxed text-muted-foreground">
-        <section>
+      <div className="mt-8 rounded-2xl border border-border bg-card text-sm leading-relaxed text-muted-foreground">
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             1. Information we collect
           </h2>
@@ -29,7 +29,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             2. How we use your information
           </h2>
@@ -41,7 +41,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             3. Marketing communications (email &amp; SMS)
           </h2>
@@ -64,7 +64,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             4. Who we share information with
           </h2>
@@ -93,7 +93,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             5. Cookies
           </h2>
@@ -104,7 +104,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             6. Data retention
           </h2>
@@ -115,7 +115,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             7. Your rights
           </h2>
@@ -133,7 +133,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             8. Children&apos;s privacy
           </h2>
@@ -143,7 +143,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             9. Changes to this policy
           </h2>
@@ -154,7 +154,7 @@ export default function PrivacyPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             10. Contact
           </h2>

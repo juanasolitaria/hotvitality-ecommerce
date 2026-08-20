@@ -14,8 +14,8 @@ export default function ReturnsPage() {
         Last updated August 2026
       </p>
 
-      <div className="mt-8 space-y-6 text-sm leading-relaxed text-muted-foreground">
-        <section>
+      <div className="mt-8 rounded-2xl border border-border bg-card text-sm leading-relaxed text-muted-foreground">
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             14-day return window
           </h2>
@@ -28,7 +28,7 @@ export default function ReturnsPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             Damaged, defective, or incorrect items
           </h2>
@@ -41,7 +41,7 @@ export default function ReturnsPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             How to start a return
           </h2>
@@ -60,7 +60,7 @@ export default function ReturnsPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             Return shipping
           </h2>
@@ -71,7 +71,7 @@ export default function ReturnsPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             Refunds
           </h2>
@@ -84,7 +84,7 @@ export default function ReturnsPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             Questions?
           </h2>

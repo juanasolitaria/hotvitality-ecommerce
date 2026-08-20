@@ -14,8 +14,8 @@ export default function TermsPage() {
         Last updated August 2026
       </p>
 
-      <div className="mt-8 space-y-6 text-sm leading-relaxed text-muted-foreground">
-        <section>
+      <div className="mt-8 rounded-2xl border border-border bg-card text-sm leading-relaxed text-muted-foreground">
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             1. Agreement to terms
           </h2>
@@ -27,7 +27,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             2. Not medical advice
           </h2>
@@ -43,7 +43,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             3. Orders and payment
           </h2>
@@ -57,7 +57,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             4. Shipping and returns
           </h2>
@@ -74,7 +74,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             5. Account use
           </h2>
@@ -87,7 +87,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             6. Marketing communications
           </h2>
@@ -105,7 +105,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             7. Intellectual property
           </h2>
@@ -116,7 +116,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             8. Limitation of liability
           </h2>
@@ -129,7 +129,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             9. Governing law
           </h2>
@@ -139,7 +139,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             10. Changes to these terms
           </h2>
@@ -150,7 +150,7 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section>
+        <section className="px-6 py-3">
           <h2 className="text-lg font-semibold text-foreground">
             11. Contact
           </h2>

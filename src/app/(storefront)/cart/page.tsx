@@ -35,9 +35,10 @@ export default function CartPage() {
       </h1>
 
       {/* Items list and summary stack on mobile; summary becomes a
-          sticky sidebar from `lg` up. */}
+          sticky sidebar from `lg` up. Both are their own card, same
+          treatment as the Order Summary always had. */}
       <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="divide-y divide-border rounded-2xl border border-border bg-card p-6 lg:col-span-2">
           {items.map((item) => (
             <CartItem
               key={item.product.id}
