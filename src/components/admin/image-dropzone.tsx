@@ -6,28 +6,34 @@ import { Loader2, Upload, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { uploadProductImages } from "@/app/admin/products/actions";
+import { ImageCropDialog } from "@/components/admin/image-crop-dialog";
 
 interface ImageDropzoneProps {
   images: string[];
   onChange: (images: string[]) => void;
 }
 
-// Drag-and-drop (or click to browse) multi-photo uploader. Dropped files
-// go straight to Supabase Storage via a Server Action; we only keep the
-// public URLs it returns here in the form's state.
+// Drag-and-drop (or click to browse) multi-photo uploader. Each photo
+// goes through a crop dialog first (so it fits the square frame it'll be
+// shown in everywhere on the site), then straight to Supabase Storage via
+// a Server Action — we only keep the public URLs it returns here.
 export function ImageDropzone({ images, onChange }: ImageDropzoneProps) {
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [cropQueue, setCropQueue] = useState<File[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  async function uploadFiles(files: FileList | File[]) {
+  function queueFiles(files: FileList | File[]) {
     const imageFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
     if (imageFiles.length === 0) return;
+    setCropQueue((prev) => [...prev, ...imageFiles]);
+  }
 
+  async function uploadOne(file: File) {
     setUploading(true);
     try {
       const formData = new FormData();
-      imageFiles.forEach((file) => formData.append("files", file));
+      formData.append("files", file);
       const urls = await uploadProductImages(formData);
       onChange([...images, ...urls]);
     } finally {
@@ -39,7 +45,7 @@ export function ImageDropzone({ images, onChange }: ImageDropzoneProps) {
     e.preventDefault();
     setDragging(false);
     if (e.dataTransfer.files.length > 0) {
-      uploadFiles(e.dataTransfer.files);
+      queueFiles(e.dataTransfer.files);
     }
   }
 
@@ -71,7 +77,7 @@ export function ImageDropzone({ images, onChange }: ImageDropzoneProps) {
           multiple
           className="hidden"
           onChange={(e) => {
-            if (e.target.files) uploadFiles(e.target.files);
+            if (e.target.files) queueFiles(e.target.files);
             e.target.value = "";
           }}
         />
@@ -107,6 +113,19 @@ export function ImageDropzone({ images, onChange }: ImageDropzoneProps) {
           ))}
         </div>
       )}
+
+      <ImageCropDialog
+        file={cropQueue[0] ?? null}
+        onCancel={() => setCropQueue((prev) => prev.slice(1))}
+        onSkip={(file) => {
+          setCropQueue((prev) => prev.slice(1));
+          uploadOne(file);
+        }}
+        onConfirm={(croppedFile) => {
+          setCropQueue((prev) => prev.slice(1));
+          uploadOne(croppedFile);
+        }}
+      />
     </div>
   );
 }
