@@ -18,6 +18,7 @@ import {
 import {
   ORDER_STATUS_LABELS,
   ORDER_STATUS_STYLES,
+  getShippingStatus,
 } from "@/components/admin/order-status-badge";
 
 export const metadata: Metadata = {
@@ -98,11 +99,17 @@ export default async function AdminDashboardPage() {
                 <TableHead className="px-4">Order</TableHead>
                 <TableHead className="px-4">Customer</TableHead>
                 <TableHead className="px-4">Status</TableHead>
+                <TableHead className="px-4">Shipping Status</TableHead>
                 <TableHead className="px-4 text-right">Total</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {recentOrders.map((order) => (
+              {recentOrders.map((order) => {
+                const shippingStatus = getShippingStatus(
+                  order.status,
+                  order.trackingNumber
+                );
+                return (
                 <TableRow key={order.id} className="cursor-pointer">
                   <TableCell className="p-0 font-medium">
                     <Link href={`/admin/orders/${order.id}`} className="block px-4 py-3">
@@ -124,13 +131,27 @@ export default async function AdminDashboardPage() {
                       </Badge>
                     </Link>
                   </TableCell>
+                  <TableCell className="p-0">
+                    <Link href={`/admin/orders/${order.id}`} className="block px-4 py-3">
+                      {shippingStatus.style ? (
+                        <Badge variant="outline" className={shippingStatus.style}>
+                          {shippingStatus.label}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground">
+                          {shippingStatus.label}
+                        </span>
+                      )}
+                    </Link>
+                  </TableCell>
                   <TableCell className="p-0 text-right">
                     <Link href={`/admin/orders/${order.id}`} className="block px-4 py-3">
                       ${order.total.toFixed(2)}
                     </Link>
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>
