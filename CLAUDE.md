@@ -193,9 +193,15 @@ the Supabase SQL Editor for any of this to take effect.
 - Required env vars live in `.env.local` (never commit real values):
   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
   `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`,
-  `RESEND_API_KEY`, `NEXT_PUBLIC_SITE_URL`. These are only set locally right now —
-  nothing has been deployed, so nothing is configured in Vercel (or wherever this
-  ends up hosted) yet.
+  `RESEND_API_KEY`, `NEXT_PUBLIC_SITE_URL`, `TELEGRAM_BOT_TOKEN`,
+  `TELEGRAM_CHAT_ID` (the last two are only read by `src/lib/telegram.ts` —
+  missing them doesn't break anything else, `sendAdminOrderNotification`
+  just logs and skips sending). Deployed to Vercel as of 2026-08-20
+  (`hotvitality.vercel.app`, live Stripe keys) — the custom domain
+  (`hot-vitality.com`) isn't pointed at it yet, so `NEXT_PUBLIC_SITE_URL`
+  is temporarily set to the `vercel.app` URL until that DNS cutover
+  happens (see "Pending reminders" project memory for the full deploy
+  checklist).
 - Supabase Auth's own emails (signup confirmation, password reset) go out through
   Resend too, via custom SMTP configured in the Supabase dashboard
   (Authentication → Settings → SMTP Settings) — not through `src/lib/resend.ts`
