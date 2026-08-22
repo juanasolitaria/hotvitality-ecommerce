@@ -38,6 +38,19 @@ const nextConfig = {
         : []),
     ],
   },
+  async redirects() {
+    return [
+      // A physical QR code already printed/in circulation points at this
+      // exact path (hot-vitality.com/17867577079) — nothing else ever
+      // links here. Redirecting it to the homepage instead of a 404 means
+      // that QR code doesn't need to be reprinted.
+      {
+        source: "/17867577079",
+        destination: "/",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
