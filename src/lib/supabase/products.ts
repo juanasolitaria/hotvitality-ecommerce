@@ -12,10 +12,11 @@ interface ProductRow {
   description: string | null;
   price: number;
   images: string[];
+  stock: number;
 }
 
 const PRODUCT_COLUMNS =
-  "id, slug, name, short_description, description, price, images";
+  "id, slug, name, short_description, description, price, images, stock";
 
 function mapProduct(row: ProductRow): Product {
   return {
@@ -26,6 +27,7 @@ function mapProduct(row: ProductRow): Product {
     description: row.description ?? "",
     price: row.price,
     images: row.images,
+    stock: row.stock,
   };
 }
 

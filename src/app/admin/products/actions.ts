@@ -46,6 +46,7 @@ export interface ProductInput {
   description: string;
   price: number;
   images: string[];
+  stock: number;
 }
 
 export async function saveProduct(input: ProductInput) {
@@ -60,6 +61,7 @@ export async function saveProduct(input: ProductInput) {
     description: input.description,
     price: input.price,
     images: input.images,
+    stock: input.stock,
   });
 
   if (error) throw new Error(error.message);

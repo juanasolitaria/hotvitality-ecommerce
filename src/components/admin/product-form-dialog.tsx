@@ -25,6 +25,7 @@ const EMPTY_FORM = {
   shortDescription: "",
   description: "",
   price: "",
+  stock: "0",
   images: [] as string[],
 };
 
@@ -57,6 +58,7 @@ export function ProductFormDialog({
           shortDescription: product.shortDescription,
           description: product.description,
           price: String(product.price),
+          stock: String(product.stock),
           images: product.images,
         }
       : EMPTY_FORM
@@ -77,6 +79,7 @@ export function ProductFormDialog({
               shortDescription: product.shortDescription,
               description: product.description,
               price: String(product.price),
+              stock: String(product.stock),
               images: product.images,
             }
           : EMPTY_FORM
@@ -155,6 +158,7 @@ export function ProductFormDialog({
     }
 
     const price = Number(form.price);
+    const stock = Number(form.stock);
     const savedProduct: Product = {
       id: product?.id ?? crypto.randomUUID(),
       slug: product?.slug ?? slugify(form.name),
@@ -162,6 +166,7 @@ export function ProductFormDialog({
       shortDescription: form.shortDescription,
       description: form.description,
       price: Number.isFinite(price) ? price : 0,
+      stock: Number.isInteger(stock) && stock >= 0 ? stock : 0,
       images: form.images,
     };
 
@@ -256,19 +261,36 @@ export function ProductFormDialog({
               </p>
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="price">Price (USD)</Label>
-              <Input
-                id="price"
-                type="number"
-                min="0"
-                step="0.01"
-                required
-                value={form.price}
-                onChange={(e) =>
-                  setForm((prev) => ({ ...prev, price: e.target.value }))
-                }
-              />
+            <div className="flex gap-4">
+              <div className="flex flex-1 flex-col gap-1.5">
+                <Label htmlFor="price">Price (USD)</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  required
+                  value={form.price}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, price: e.target.value }))
+                  }
+                />
+              </div>
+
+              <div className="flex flex-1 flex-col gap-1.5">
+                <Label htmlFor="stock">Stock</Label>
+                <Input
+                  id="stock"
+                  type="number"
+                  min="0"
+                  step="1"
+                  required
+                  value={form.stock}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, stock: e.target.value }))
+                  }
+                />
+              </div>
             </div>
 
             <div className="flex flex-col gap-1.5">

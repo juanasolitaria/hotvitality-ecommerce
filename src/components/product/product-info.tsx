@@ -77,13 +77,14 @@ export function ProductInfo({ product }: { product: Product }) {
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [descriptionOpen, setDescriptionOpen] = useState(false);
+  const soldOut = product.stock <= 0;
 
   function decrease() {
     setQuantity((prev) => Math.max(1, prev - 1));
   }
 
   function increase() {
-    setQuantity((prev) => prev + 1);
+    setQuantity((prev) => Math.min(product.stock, prev + 1));
   }
 
   function handleAddToCart() {
@@ -108,6 +109,14 @@ export function ProductInfo({ product }: { product: Product }) {
         ${product.price.toFixed(2)}
       </p>
 
+      {soldOut ? (
+        <p className="mt-2 text-sm font-medium text-red-400">Sold out</p>
+      ) : (
+        <p className="mt-2 text-sm text-muted-foreground">
+          {product.stock} available
+        </p>
+      )}
+
       {/* Quantity stepper + Add to Cart stack on mobile, sit side by side
           from `sm` up. */}
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -122,7 +131,7 @@ export function ProductInfo({ product }: { product: Product }) {
             onClick={decrease}
             aria-label="Decrease quantity"
             className="flex size-9 items-center justify-center text-foreground hover:bg-accent disabled:opacity-40"
-            disabled={quantity === 1}
+            disabled={soldOut || quantity === 1}
           >
             <Minus className="size-4" />
           </button>
@@ -133,7 +142,8 @@ export function ProductInfo({ product }: { product: Product }) {
             type="button"
             onClick={increase}
             aria-label="Increase quantity"
-            className="flex size-9 items-center justify-center text-foreground hover:bg-accent"
+            className="flex size-9 items-center justify-center text-foreground hover:bg-accent disabled:opacity-40"
+            disabled={soldOut || quantity >= product.stock}
           >
             <Plus className="size-4" />
           </button>
@@ -142,9 +152,10 @@ export function ProductInfo({ product }: { product: Product }) {
         <Button
           size="lg"
           onClick={handleAddToCart}
+          disabled={soldOut}
           className="bg-[#FFD814] text-black hover:bg-[#F7CA00] sm:flex-1"
         >
-          Add to Cart
+          {soldOut ? "Sold out" : "Add to Cart"}
         </Button>
       </div>
 
@@ -155,9 +166,10 @@ export function ProductInfo({ product }: { product: Product }) {
       <Button
         size="lg"
         onClick={handleBuyNow}
+        disabled={soldOut}
         className="mt-3 w-full bg-[#FFA41C] text-black hover:bg-[#FA8900]"
       >
-        Buy Now
+        {soldOut ? "Sold out" : "Buy Now"}
       </Button>
 
       <div className="mt-6">

@@ -77,7 +77,7 @@ async function createPendingOrder(input: CheckoutInput) {
   const productIds = input.items.map((item) => item.productId);
   const { data: products, error: productsError } = await supabase
     .from("products")
-    .select("id, name, price")
+    .select("id, name, price, stock")
     .in("id", productIds)
     .eq("is_active", true);
 
@@ -89,6 +89,12 @@ async function createPendingOrder(input: CheckoutInput) {
       throw new Error(
         "One of the items in your cart is no longer available."
       );
+    }
+    // The "Sold out"/disabled-button state on /product is only a UI
+    // guard — re-check stock here too, since nothing stops a request
+    // from being crafted directly against this Server Action.
+    if (item.quantity > product.stock) {
+      throw new Error(`Only ${product.stock} of "${product.name}" left in stock.`);
     }
     return {
       product_id: product.id,

@@ -11,6 +11,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
 export function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
+  const soldOut = product.stock <= 0;
 
   function handleAddToCart() {
     addItem(product);
@@ -49,14 +50,17 @@ export function ProductCard({ product }: { product: Product }) {
         <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
           {product.shortDescription}
         </p>
+        {soldOut && (
+          <p className="mt-1 text-xs font-medium text-red-400">Sold out</p>
+        )}
         <p className="mt-2 text-sm font-semibold text-primary">
           ${product.price.toFixed(2)}
         </p>
       </CardContent>
 
       <CardFooter className="border-t-0 bg-transparent p-4 pt-0">
-        <Button onClick={handleAddToCart} className="w-full">
-          Add to Cart
+        <Button onClick={handleAddToCart} disabled={soldOut} className="w-full">
+          {soldOut ? "Sold out" : "Add to Cart"}
         </Button>
       </CardFooter>
     </Card>

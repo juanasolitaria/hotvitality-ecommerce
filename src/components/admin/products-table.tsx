@@ -50,6 +50,7 @@ export function ProductsTable({
         description: product.description,
         price: product.price,
         images: product.images,
+        stock: product.stock,
       });
     } catch (error) {
       toast.error(
@@ -112,6 +113,7 @@ export function ProductsTable({
               <TableRow>
                 <TableHead>Product</TableHead>
                 <TableHead>Price</TableHead>
+                <TableHead>Stock</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -140,6 +142,13 @@ export function ProductsTable({
                     </div>
                   </TableCell>
                   <TableCell>${product.price.toFixed(2)}</TableCell>
+                  <TableCell>
+                    {product.stock > 0 ? (
+                      product.stock
+                    ) : (
+                      <span className="text-destructive">Sold out</span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-1">
                       <ProductFormDialog

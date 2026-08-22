@@ -14,6 +14,8 @@ export interface Product {
   price: number;
   /** One or more photo URLs. The first one is used as the card/cart thumbnail. */
   images: string[];
+  /** Units currently in stock. 0 means sold out. */
+  stock: number;
 }
 
 // A single line item inside the shopping cart: a product plus how many
