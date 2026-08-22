@@ -20,7 +20,7 @@ const SLIDES = [
   },
 ];
 
-const AUTOPLAY_DELAY_MS = 10000; // 10 seconds
+const AUTOPLAY_DELAY_MS = 6000; // 6 seconds
 
 // Same footprint as the old single hero image (aspect-[4/3], rounded-2xl)
 // but cycles through a few lifestyle photos instead of showing just one.
