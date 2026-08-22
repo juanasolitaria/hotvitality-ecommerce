@@ -33,10 +33,16 @@ both get recorded on the order (`terms_accepted`, `sms_marketing_consent`).
 which verifies the session with Stripe before showing anything (never trusts the
 URL alone). The order is only marked `paid` by the Stripe webhook
 (`src/app/api/webhooks/stripe/route.ts`, `checkout.session.completed`), which also
-fires the order-confirmation email (`src/lib/email/order-confirmation.ts`) and a
-Telegram notification to the admin group (`src/lib/telegram.ts`) as best-effort
-side effects — failures are logged, not thrown, so they can't turn into a Stripe
-webhook retry loop.
+decrements `products.stock` for each line item (via the `decrement_product_stock`
+Postgres function, `supabase/migrations/0010_decrement_stock_on_purchase.sql` —
+a single atomic `UPDATE`, clamped at 0, called once per item through `db.rpc()`
+so concurrent purchases of the same product can't race each other), fires the
+order-confirmation email (`src/lib/email/order-confirmation.ts`), and a Telegram
+notification to the admin group (`src/lib/telegram.ts`) as best-effort side
+effects — failures are logged, not thrown, so they can't turn into a Stripe
+webhook retry loop (the `.eq("status", "pending")` idempotency guard means a
+redelivered event wouldn't retry any of this anyway, since `order` comes back
+null once the order is no longer `pending`).
 
 **Shipping a paid order.** `status` (`paid`/`cancelled`/`pending`/etc.) means
 exactly what it always has and never changes to `shipped` — what's new is a
@@ -208,7 +214,11 @@ the Supabase SQL Editor for any of this to take effect.
   directly, that file is only for order confirmations sent from application code.
 - Database schema changes live as numbered files in `supabase/migrations/`, run
   manually in the Supabase SQL Editor (no CLI/migration runner wired up) — bump
-  the number for any new change (`0010_...sql`, etc). Latest is
+  the number for any new change (`0011_...sql`, etc). Latest is
+  `0010_decrement_stock_on_purchase.sql` (adds the `decrement_product_stock`
+  function the webhook calls to actually reduce `products.stock` on a paid
+  order — see "Confirming payment" above; before this migration ran, stock
+  never moved no matter how many orders went through). Before that,
   `0009_contact_form.sql` (adds `contact_rate_limits`, used only for rate
   limiting the contact form — see "Contact form" above). Before that,
   `0008_security_hardening.sql` (see "Security review history" above — drops

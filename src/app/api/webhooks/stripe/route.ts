@@ -64,7 +64,7 @@ export async function POST(request: Request) {
         .eq("id", orderId)
         .eq("status", "pending")
         .select(
-          "customer_name, customer_email, subtotal, total, shipping_address, order_items(product_name, unit_price, quantity)"
+          "customer_name, customer_email, subtotal, total, shipping_address, order_items(product_id, product_name, unit_price, quantity)"
         )
         .maybeSingle();
 
@@ -79,6 +79,25 @@ export async function POST(request: Request) {
       // order is null when this event was already processed (order was
       // no longer "pending") — a Stripe redelivery, so skip both sends.
       if (order) {
+        // Best-effort, same as the email/Telegram sends below: the order
+        // is already paid at this point, which is what matters most, and
+        // a redelivered event won't retry this anyway (the .eq("status",
+        // "pending") guard above means `order` will be null next time), so
+        // there's no retry to preserve by throwing here instead of logging.
+        const stockResults = await Promise.all(
+          order.order_items.map((item) =>
+            db.rpc("decrement_product_stock", {
+              p_product_id: item.product_id,
+              p_quantity: item.quantity,
+            })
+          )
+        );
+        for (const { error: stockError } of stockResults) {
+          if (stockError) {
+            console.error("Failed to decrement product stock:", stockError.message);
+          }
+        }
+
         // Best-effort, run together: the order is already paid at this
         // point, which is what matters. Both functions log their own
         // errors instead of throwing, so a Resend or Telegram outage
