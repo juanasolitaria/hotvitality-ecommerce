@@ -5,9 +5,7 @@ import { ProductCard } from "@/components/shop/product-card";
 import { Button } from "@/components/ui/button";
 
 export async function FeaturedProducts() {
-  // Show the first 4 products as a curated preview on the homepage.
   const products = await getProducts();
-  const featured = products.slice(0, 4);
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -22,7 +20,7 @@ export async function FeaturedProducts() {
 
       {/* 2 columns on mobile, growing up to 4 on large screens. */}
       <div className="mt-6 grid grid-cols-2 gap-4 sm:gap-6 lg:grid-cols-4">
-        {featured.map((product) => (
+        {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>

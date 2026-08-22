@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { ChevronRight, House, Menu, ShoppingBag } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -15,9 +16,8 @@ import { AccountButton } from "@/components/layout/account-button";
 import { createClient } from "@/lib/supabase/server";
 
 const NAV_LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/shop", label: "Shop" },
-  { href: "/shop", label: "Deals" },
+  { href: "/", label: "Home", icon: House },
+  { href: "/shop", label: "Shop", icon: ShoppingBag },
 ];
 
 export async function Header() {
@@ -43,19 +43,38 @@ export async function Header() {
             <Menu className="size-5" />
             <span className="sr-only">Open menu</span>
           </SheetTrigger>
-          <SheetContent side="left" className="w-64">
-            <SheetHeader>
-              <SheetTitle>HotVitality</SheetTitle>
-            </SheetHeader>
-            <nav className="flex flex-col gap-1 px-4">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.label}
-                  href={link.href}
-                  className="rounded-md px-2 py-2 text-sm font-medium text-foreground hover:bg-accent"
+          <SheetContent side="left" className="w-72 gap-0 p-0">
+            <SheetHeader className="border-b border-border bg-[#c5e9c8] p-4">
+              <SheetTitle className="flex items-center gap-2 text-base">
+                <SheetClose
+                  render={
+                    <Link href="/" className="flex items-center gap-2" />
+                  }
                 >
+                  <Logo />
+                  <span className="text-lg font-bold tracking-tight text-[#2e3832]">
+                    HotVitality
+                  </span>
+                </SheetClose>
+              </SheetTitle>
+            </SheetHeader>
+            <nav className="flex flex-col gap-1 p-3">
+              {NAV_LINKS.map((link) => (
+                <SheetClose
+                  key={link.label}
+                  render={
+                    <Link
+                      href={link.href}
+                      className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+                    />
+                  }
+                >
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent text-primary">
+                    <link.icon className="size-4" />
+                  </span>
                   {link.label}
-                </Link>
+                  <ChevronRight className="ml-auto size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                </SheetClose>
               ))}
             </nav>
           </SheetContent>
