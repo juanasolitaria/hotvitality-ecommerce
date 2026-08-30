@@ -16,6 +16,17 @@ const nextConfig = {
     },
   },
   images: {
+    // TEMPORARY (added 2026-08-30): the Vercel account hit 100% of its
+    // free-tier Image Optimization quota (5,000 transformations/month on
+    // Hobby) — past that, new/uncached image sizes fail with a 402 error
+    // instead of loading. `unoptimized: true` makes next/image serve the
+    // original file straight from Supabase Storage instead of asking
+    // Vercel to resize/convert it, which stops the 402s immediately and
+    // uses none of that quota going forward. Remove this once the quota
+    // resets (up to 30 days from when the cap was hit) if automatic
+    // resizing/WebP conversion is worth turning back on — or leave it if
+    // the slightly heavier images aren't noticeable at this catalog size.
+    unoptimized: true,
     // Allows next/image to optimize both the leftover Unsplash placeholder
     // photos and the real product photos uploaded through the admin panel
     // (stored in Supabase Storage's `product-images` bucket). The Supabase
