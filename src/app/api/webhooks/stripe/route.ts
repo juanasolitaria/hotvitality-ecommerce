@@ -4,6 +4,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 
 import { stripe } from "@/lib/stripe";
 import { sendOrderConfirmationEmail } from "@/lib/email/order-confirmation";
+import { sendAdminOrderEmail } from "@/lib/email/admin-order-notification";
 import { sendAdminOrderNotification } from "@/lib/telegram";
 
 // Stripe calls this URL directly (not the browser), so there's no user
@@ -99,7 +100,7 @@ export async function POST(request: Request) {
         }
 
         // Best-effort, run together: the order is already paid at this
-        // point, which is what matters. Both functions log their own
+        // point, which is what matters. All three functions log their own
         // errors instead of throwing, so a Resend or Telegram outage
         // doesn't turn into a Stripe webhook retry.
         await Promise.all([
@@ -110,6 +111,14 @@ export async function POST(request: Request) {
             subtotal: order.subtotal,
             total: order.total,
             items: order.order_items,
+          }),
+          sendAdminOrderEmail({
+            orderId,
+            customerName: order.customer_name,
+            customerEmail: order.customer_email,
+            total: order.total,
+            items: order.order_items,
+            shippingAddress: order.shipping_address,
           }),
           sendAdminOrderNotification({
             orderId,
