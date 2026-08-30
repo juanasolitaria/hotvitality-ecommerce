@@ -8,6 +8,10 @@ import { toast } from "sonner";
 import { useCart } from "@/lib/cart-context";
 import { calculateShipping } from "@/lib/shipping";
 import { createCheckoutSession } from "@/app/(storefront)/checkout/actions";
+import {
+  AddressAutocomplete,
+  type ParsedAddress,
+} from "@/components/checkout/address-autocomplete";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -61,6 +65,20 @@ export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
 
   function updateAddress(field: keyof typeof BLANK_ADDRESS, value: string) {
     setAddress((prev) => ({ ...prev, [field]: value }));
+  }
+
+  // Fills in the rest of the address fields from a chosen suggestion, but
+  // leaves them as normal editable inputs — Google's parse isn't always
+  // exact, so the customer can still correct anything.
+  function handleAddressSelect(parsed: ParsedAddress) {
+    setAddress((prev) => ({
+      ...prev,
+      line1: parsed.line1 || prev.line1,
+      city: parsed.city || prev.city,
+      state: parsed.state || prev.state,
+      postalCode: parsed.postalCode || prev.postalCode,
+      country: parsed.country || prev.country,
+    }));
   }
 
   async function handleSubmit(e: FormEvent) {
@@ -176,12 +194,13 @@ export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
 
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="line1">Address</Label>
-          <Input
+          <AddressAutocomplete
             id="line1"
             className={FIELD_CLASS}
             required
             value={address.line1}
-            onChange={(e) => updateAddress("line1", e.target.value)}
+            onChange={(value) => updateAddress("line1", value)}
+            onSelect={handleAddressSelect}
           />
         </div>
 

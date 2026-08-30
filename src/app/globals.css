@@ -49,6 +49,43 @@
   }
 }
 
+/* Google's <gmp-place-autocomplete> (checkout's address field) is a normal
+   light-DOM custom element — its shadow root is closed to us, but the host
+   element itself is not, so plain CSS reaches it fine, no shadow-piercing
+   tricks needed. Found via DevTools (2026-08-30): Google's own `:host` rule
+   sets `background-color: light-dark(#fff, rgb(19,19,20))`, `border: 1px
+   solid black` and `color-scheme: light dark` on this element — so on a
+   system/browser in dark mode, the widget renders its own near-black
+   background and border no matter what theme our page uses, and every
+   inner wrapper (.input-container, .widget-container) is transparent, just
+   showing that black host background through. That's the "ugly black
+   border"/"black fill" — never a class on an inner wrapper, always this.
+   Overriding it here (not inside the shadow root) is what actually fixes
+   it, and pins the widget to our site's light-only theme regardless of the
+   visitor's own dark-mode setting, same as the rest of the page. */
+.address-autocomplete gmp-place-autocomplete {
+  display: block;
+  width: 100%;
+  height: 100%;
+  color-scheme: light !important;
+  background-color: #ffffff !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+/* The widget's own blue focus outline (Google's default, `border: 2px solid
+   rgb(26, 115, 232)`, faded in/out via inline `opacity`) is redundant with
+   the `focus-within:ring-*` this field already gets from the rest of the
+   form — unlike the internals above, this one has a `part="focus-ring"`
+   attribute Google explicitly exposes for exactly this kind of override, so
+   plain ::part() reaches it with no shadow-DOM tricks needed. `!important`
+   because it only needs to beat Google's own inline (non-important) style,
+   which an author-stylesheet !important always wins against regardless of
+   selector specificity or which one is set/toggled last. */
+.address-autocomplete gmp-place-autocomplete::part(focus-ring) {
+  opacity: 0 !important;
+}
+
 /*
  * Theme tokens
  * ------------
