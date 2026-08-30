@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 
 import type { CartItem, Product } from "@/lib/types";
 
@@ -30,12 +31,29 @@ const CartContext = createContext<CartContextValue | null>(null);
 // database table required. It survives page refreshes and closing the
 // tab, but not switching devices or clearing browser data.
 export function CartProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const [items, setItems] = useState<CartItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
 
   // localStorage only exists in the browser, so the initial load has to
   // happen after mount rather than during render.
+  //
+  // /checkout/success is a special case: it's an async Server Component
+  // (it has to await Stripe + Supabase before it can render), so Next.js
+  // streams it in as a separate, later commit than this layout's shell —
+  // meaning THIS hydrate effect can run and restore the old cart from
+  // localStorage before ClearCartOnMount (nested inside that slower page)
+  // ever gets a chance to mount and call clearCart(). Rather than depend on
+  // effect-ordering between two different components, just skip restoring
+  // anything here when we already know the answer is "empty" — same
+  // pathname check next/navigation gives every client and server render.
   useEffect(() => {
+    if (pathname === "/checkout/success") {
+      localStorage.removeItem(STORAGE_KEY);
+      setHydrated(true);
+      return;
+    }
+
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
@@ -45,6 +63,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     }
     setHydrated(true);
+    // Only ever meant to run once, for whichever page this browser tab
+    // first loaded — not on every client-side navigation afterward.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Skip the very first run (before the saved cart has loaded) so we
