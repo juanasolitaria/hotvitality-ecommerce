@@ -151,13 +151,15 @@ export default async function AdminOrderDetailPage({
                       <CopyField label="Address line 2" value={address.line2} />
                     </div>
                   )}
-                  <div>
+                  {/* City/state/postal grouped on one line ("Linden, NJ
+                      07036") like a normal US address instead of three
+                      stacked lines — each still keeps its own CopyField so
+                      the admin can still copy just one piece at a time into
+                      PirateShip's separate City/State/Zip fields. */}
+                  <div className="flex flex-wrap items-center gap-x-1">
                     <CopyField label="City" value={address.city} />
-                  </div>
-                  <div>
+                    <span>,</span>
                     <CopyField label="State" value={address.state} />
-                  </div>
-                  <div>
                     <CopyField label="Postal code" value={address.postalCode} />
                   </div>
                   <div>

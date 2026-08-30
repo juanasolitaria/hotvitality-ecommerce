@@ -34,6 +34,9 @@ yarn-error.log*
 # Claude Code local worktrees (not part of the app)
 .claude/worktrees/
 
+# personal notes / learning docs, not part of the app
+/docs/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

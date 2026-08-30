@@ -1,5 +1,5 @@
 // Real HotVitality business WhatsApp number.
-const WHATSAPP_PHONE_NUMBER = "7867577079";
+const WHATSAPP_PHONE_NUMBER = "7547778921";
 const WHATSAPP_URL = `https://wa.me/${WHATSAPP_PHONE_NUMBER}`;
 
 // lucide-react only ships generic icons, not brand logos, so the WhatsApp
