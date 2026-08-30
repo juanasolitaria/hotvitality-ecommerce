@@ -28,6 +28,24 @@ card details never touch our server. The form also requires a required Terms/
 Privacy checkbox (enforced again server-side, not just via the form's
 `required`) and offers an optional, unchecked-by-default SMS marketing opt-in —
 both get recorded on the order (`terms_accepted`, `sms_marketing_consent`).
+The "Address" field itself is `src/components/checkout/address-autocomplete.tsx`,
+which loads the Google Maps JavaScript API on demand and renders Google's
+`PlaceAutocompleteElement` (US-only via `includedRegionCodes`) — the only
+address-autocomplete widget Google still issues to new Cloud projects; the
+older, simpler `google.maps.places.Autocomplete` widget was cut off for new
+customers in March 2025. Picking a suggestion calls `place.fetchFields()`
+for just `addressComponents` (deliberately the cheapest "Essentials" billing
+tier — no `displayName`), splits that into street/city/state/postal
+code/country, and fills in the rest of the form, but every field stays a
+normal editable input afterward since Google's parse isn't always exact.
+This never blocks checkout: with no `NEXT_PUBLIC_GOOGLE_PLACES_API_KEY` set,
+it's just a plain text input with no suggestions. Because the API key ships
+to the browser, the Google Cloud project's key **must** be restricted by
+HTTP referrer (only `hot-vitality.com`/the Vercel URL) and by a low daily
+quota cap in Cloud Console's Quotas page — otherwise a scraped key could run
+up real charges even though normal store traffic stays inside Google's free
+monthly allowance (10,000 autocomplete requests + 10,000 Place Details
+Essentials calls/month, comfortably more than this store's actual volume).
 
 **Confirming payment.** Stripe redirects back to `/checkout/success?session_id=...`,
 which verifies the session with Stripe before showing anything (never trusts the
@@ -37,12 +55,18 @@ decrements `products.stock` for each line item (via the `decrement_product_stock
 Postgres function, `supabase/migrations/0010_decrement_stock_on_purchase.sql` —
 a single atomic `UPDATE`, clamped at 0, called once per item through `db.rpc()`
 so concurrent purchases of the same product can't race each other), fires the
-order-confirmation email (`src/lib/email/order-confirmation.ts`), and a Telegram
-notification to the admin group (`src/lib/telegram.ts`) as best-effort side
-effects — failures are logged, not thrown, so they can't turn into a Stripe
-webhook retry loop (the `.eq("status", "pending")` idempotency guard means a
-redelivered event wouldn't retry any of this anyway, since `order` comes back
-null once the order is no longer `pending`).
+order-confirmation email (`src/lib/email/order-confirmation.ts`), an admin
+notification email (`src/lib/email/admin-order-notification.ts` — same
+HTML-table template style as the confirmation email, but addressed to the
+admin inbox with order total/items/shipping address and a link into
+`/admin/orders/[id]`; currently hardcoded to a personal test address while
+this is being verified, meant to move to `hotvitality@gmail.com` once
+confirmed working), and a Telegram notification to the admin group
+(`src/lib/telegram.ts`) as best-effort side effects — failures are logged,
+not thrown, so they can't turn into a Stripe webhook retry loop (the
+`.eq("status", "pending")` idempotency guard means a redelivered event
+wouldn't retry any of this anyway, since `order` comes back null once the
+order is no longer `pending`).
 
 **Shipping a paid order.** `status` (`paid`/`cancelled`/`pending`/etc.) means
 exactly what it always has and never changes to `shipped` — what's new is a
@@ -202,7 +226,12 @@ the Supabase SQL Editor for any of this to take effect.
   `RESEND_API_KEY`, `NEXT_PUBLIC_SITE_URL`, `TELEGRAM_BOT_TOKEN`,
   `TELEGRAM_CHAT_ID` (the last two are only read by `src/lib/telegram.ts` —
   missing them doesn't break anything else, `sendAdminOrderNotification`
-  just logs and skips sending). Deployed to Vercel as of 2026-08-20
+  just logs and skips sending), `NEXT_PUBLIC_GOOGLE_PLACES_API_KEY` (address
+  autocomplete on checkout, see below — same fail-open pattern: missing it
+  just turns the address field back into a plain text input, checkout still
+  works; this key is public/browser-exposed by nature, so it must be
+  restricted by HTTP referrer and a daily quota cap in Google Cloud Console
+  before it's real, not just left wide open). Deployed to Vercel as of 2026-08-20
   (`hotvitality.vercel.app`, live Stripe keys) — the custom domain
   (`hot-vitality.com`) isn't pointed at it yet, so `NEXT_PUBLIC_SITE_URL`
   is temporarily set to the `vercel.app` URL until that DNS cutover
