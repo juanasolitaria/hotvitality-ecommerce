@@ -10,10 +10,8 @@ interface AdminOrderNotificationInput {
   shippingAddress: ShippingAddress | null;
 }
 
-// TEMPORARY: sending to a personal inbox while this is being tested. Once
-// confirmed working, switch this to "hotvitality@gmail.com" (same address
-// the contact form already sends to).
-const ADMIN_NOTIFICATION_EMAIL = "juansrd11@gmail.com";
+// Same address the contact form already sends to.
+const ADMIN_NOTIFICATION_EMAIL = "hotvitality@gmail.com";
 
 function formatAddress(address: ShippingAddress) {
   const line2 = address.line2 ? `, ${address.line2}` : "";
