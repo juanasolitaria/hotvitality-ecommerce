@@ -1,25 +1,27 @@
 # HotVitality
 
 An e-commerce storefront for dietary supplements, built with Next.js and a
-real (if still sandbox-mode) backend: Supabase for data and auth, Stripe for
+real backend: Supabase for data and auth, Stripe for
 payments, Resend for email.
 
 It's a working store, not a demo — checkout goes through actual Stripe
 Checkout, orders land in Postgres, and customers get a real confirmation
 email once payment clears.
 
-## Screenshots and GIF
+## Home/Storefront
 
-*Home/Storefront*
 <img width="2547" height="1315" alt="home" src="https://github.com/user-attachments/assets/f1032dae-3960-4a19-91da-d6da11e92430" />
 
-*Google Places API for Address Autocomplete*
+## Google Places API for Address Autocomplete (GIF)
+
 <img width="1280" height="720" alt="thing-ezgif com-video-to-gif-converter" src="https://github.com/user-attachments/assets/f96e0300-9f85-4584-ac6c-9266ef8423d5" />
 
-*Admin Dashboard*
+## Admin Dashboard
+
 <img width="2555" height="1208" alt="Admin dashboard" src="https://github.com/user-attachments/assets/11e6409b-c33b-4ca2-a356-ce29a275106a" />
 
-*Cart*
+## Cart
+
 <img width="1558" height="1020" alt="cart" src="https://github.com/user-attachments/assets/5bc451a6-480e-40e0-8eff-6a7701e77817" />
 
 ## Stack
