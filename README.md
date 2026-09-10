@@ -8,6 +8,20 @@ It's a working store, not a demo — checkout goes through actual Stripe
 Checkout, orders land in Postgres, and customers get a real confirmation
 email once payment clears.
 
+## Screenshots and GIF
+
+*Home/Storefront*
+<img width="2547" height="1315" alt="home" src="https://github.com/user-attachments/assets/f1032dae-3960-4a19-91da-d6da11e92430" />
+
+*Google Places API for Address Autocomplete*
+<img width="1280" height="720" alt="thing-ezgif com-video-to-gif-converter" src="https://github.com/user-attachments/assets/f96e0300-9f85-4584-ac6c-9266ef8423d5" />
+
+*Admin Dashboard*
+<img width="2555" height="1208" alt="Admin dashboard" src="https://github.com/user-attachments/assets/11e6409b-c33b-4ca2-a356-ce29a275106a" />
+
+*Cart*
+<img width="1558" height="1020" alt="cart" src="https://github.com/user-attachments/assets/5bc451a6-480e-40e0-8eff-6a7701e77817" />
+
 ## Stack
 
 - **Next.js 14** (App Router) + TypeScript
@@ -34,46 +48,6 @@ layout guard. From there you can manage products (including drag-and-drop
 image uploads straight to Supabase Storage), see orders and revenue, and
 look at registered users.
 
-## Running it locally
-
-You'll need accounts with Supabase, Stripe, and Resend, and a `.env.local`
-with:
-
-```
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-STRIPE_SECRET_KEY=
-STRIPE_WEBHOOK_SECRET=
-RESEND_API_KEY=
-NEXT_PUBLIC_SITE_URL=http://localhost:3000
-```
-
-Then:
-
-```bash
-npm install
-```
-
-Run the SQL files in `supabase/migrations/` (in order) through the Supabase
-SQL Editor to set up the schema, storage bucket, and row-level security
-policies. `supabase/seed.sql` will give you some sample products to work
-with.
-
-To receive Stripe webhooks locally, forward them with the Stripe CLI:
-
-```bash
-stripe listen --forward-to localhost:3000/api/webhooks/stripe
-```
-
-Then start the app:
-
-```bash
-npm run dev
-```
-
-and open [http://localhost:3000](http://localhost:3000).
-
 ## Project layout
 
 - `src/app/(storefront)` — the public site: home, shop, product pages, cart,
@@ -84,10 +58,4 @@ and open [http://localhost:3000](http://localhost:3000).
 - `src/lib/email` — email templates and senders
 - `supabase/migrations` — schema changes, applied manually and in order
 
-## Status
 
-This hasn't been deployed anywhere yet — everything above runs against test
-mode / sandbox credentials for Stripe and Resend. A few things are still
-open before it's launch-ready: order status has no way to move past "paid"
-from the admin dashboard, a handful of footer links don't have pages behind
-them yet, and the WhatsApp contact button still has a placeholder number.
