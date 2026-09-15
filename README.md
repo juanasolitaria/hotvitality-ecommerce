@@ -8,7 +8,7 @@ It's a working store, not a demo — checkout goes through actual Stripe
 Checkout, orders land in Postgres, and customers get a real confirmation
 email once payment clears.
 
-**Live:** [hotvitality.vercel.app](https://hotvitality.vercel.app)
+**Live:** [hot-vitality.com](https://hot-vitality.com)
 
 ## Home/Storefront
 
