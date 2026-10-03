@@ -31,7 +31,10 @@ const BLANK_ADDRESS = {
   city: "",
   state: "",
   postalCode: "",
-  country: "",
+  // Fixed, not user-editable (see the Country field below) — shipping is
+  // US-only for now, see createPendingOrder in checkout/actions.ts for the
+  // server-side enforcement of this.
+  country: "United States",
   phone: "",
 };
 
@@ -77,7 +80,8 @@ export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
       city: parsed.city || prev.city,
       state: parsed.state || prev.state,
       postalCode: parsed.postalCode || prev.postalCode,
-      country: parsed.country || prev.country,
+      // Country isn't updated from the picked suggestion — it's fixed to
+      // "United States", see BLANK_ADDRESS above.
     }));
   }
 
@@ -249,13 +253,13 @@ export function CheckoutForm({ initialName, initialEmail }: CheckoutFormProps) {
 
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="country">Country</Label>
-          <Input
-            id="country"
-            className={FIELD_CLASS}
-            required
-            value={address.country}
-            onChange={(e) => updateAddress("country", e.target.value)}
-          />
+          {/* Disabled, not a free text field — we only ship within the
+              United States for now, so there's nothing to type here. Kept
+              visible (instead of removed) so the customer isn't confused by
+              a missing field, and so it still reads clearly on the order
+              summary/admin side. */}
+          <Input id="country" className={FIELD_CLASS} disabled value={address.country} />
+          <p className="text-xs text-muted-foreground">Shipping is only available within the U.S.</p>
         </div>
       </div>
 

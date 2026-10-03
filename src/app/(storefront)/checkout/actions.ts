@@ -56,6 +56,20 @@ async function createPendingOrder(input: CheckoutInput) {
     throw new Error("Your cart is empty.");
   }
 
+  // The checkout form's Country field is fixed to "United States" and
+  // disabled (see checkout-form.tsx) since we only ship domestically for
+  // now, but that's only a UI guard — nothing stops a crafted request from
+  // calling this Server Action directly with a different country.
+  const US_COUNTRY_NAMES = new Set([
+    "united states",
+    "united states of america",
+    "usa",
+    "us",
+  ]);
+  if (!US_COUNTRY_NAMES.has(input.shippingAddress.country.trim().toLowerCase())) {
+    throw new Error("We currently only ship within the United States.");
+  }
+
   // The cart lives in localStorage, so quantities arrive unvalidated —
   // nothing stops a crafted request from sending a negative, fractional,
   // or absurdly large one straight to this Server Action.
