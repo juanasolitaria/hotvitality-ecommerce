@@ -14,6 +14,13 @@ export const metadata: Metadata = {
   title: "HotVitality | Dietary Supplements",
   description:
     "HotVitality — premium dietary supplements to support your everyday wellness.",
+  // Proves domain ownership to Google Business Profile (and Search Console,
+  // which issues the same token) — renders as
+  // <meta name="google-site-verification" content="..." /> in <head>.
+  // Safe to leave here permanently even after verification succeeds.
+  verification: {
+    google: "2CVCSXYkgYuQt3cotZoMDto7vzudzALKLZXa2r4cu0c",
+  },
 };
 
 // This root layout stays intentionally bare (just fonts, theme, and toasts)
