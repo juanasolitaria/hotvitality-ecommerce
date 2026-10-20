@@ -16,6 +16,10 @@ export interface Product {
   images: string[];
   /** Units currently in stock. 0 means sold out. */
   stock: number;
+  /** Drives display order on both the homepage and /shop — lower shows
+   *  first. Set via drag-and-drop on /admin/products, never typed in
+   *  directly. */
+  displayOrder: number;
 }
 
 // A single line item inside the shopping cart: a product plus how many

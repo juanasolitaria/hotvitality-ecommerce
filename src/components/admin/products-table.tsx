@@ -2,11 +2,16 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+import { cn } from "@/lib/utils";
 import type { Product } from "@/lib/types";
-import { saveProduct, deleteProduct } from "@/app/admin/products/actions";
+import {
+  saveProduct,
+  deleteProduct,
+  reorderProducts,
+} from "@/app/admin/products/actions";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -39,6 +44,32 @@ export function ProductsTable({
   initialProducts: Product[];
 }) {
   const [items, setItems] = useState<Product[]>(initialProducts);
+  // Index of the row currently being dragged to reorder the list — same
+  // native drag-and-drop pattern as image-dropzone.tsx's photo reordering,
+  // just one level up (whole products instead of one product's photos).
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  // Optimistic: reorders locally first so the drag feels instant, then
+  // persists it — if the save fails, the server never heard about it, so
+  // revert back to the order from before the drag.
+  async function handleReorder(from: number, to: number) {
+    if (from === to) return;
+
+    const previous = items;
+    const next = [...items];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setItems(next);
+
+    try {
+      await reorderProducts(next.map((p) => p.id));
+    } catch (error) {
+      setItems(previous);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save new order"
+      );
+    }
+  }
 
   async function handleSave(product: Product) {
     try {
@@ -91,7 +122,8 @@ export function ProductsTable({
         <div>
           <h1 className="text-2xl font-bold text-foreground">Products</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {items.length} products
+            {items.length} products &middot; drag rows to reorder — this
+            controls the order on the homepage and /shop
           </p>
         </div>
 
@@ -111,6 +143,7 @@ export function ProductsTable({
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-8" />
                 <TableHead>Product</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead>Stock</TableHead>
@@ -118,8 +151,26 @@ export function ProductsTable({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {items.map((product) => (
-                <TableRow key={product.id}>
+              {items.map((product, i) => (
+                <TableRow
+                  key={product.id}
+                  draggable
+                  onDragStart={() => setDraggedIndex(i)}
+                  onDragEnd={() => setDraggedIndex(null)}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (draggedIndex !== null) handleReorder(draggedIndex, i);
+                    setDraggedIndex(null);
+                  }}
+                  className={cn(
+                    "cursor-grab active:cursor-grabbing",
+                    draggedIndex === i && "opacity-40"
+                  )}
+                >
+                  <TableCell>
+                    <GripVertical className="size-4 text-muted-foreground" />
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="relative size-10 shrink-0 overflow-hidden rounded-md bg-muted">

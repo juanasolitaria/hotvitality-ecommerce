@@ -53,6 +53,30 @@ export async function saveProduct(input: ProductInput) {
   await requireAdmin();
 
   const supabase = adminClient();
+
+  // `input.id` is always a fresh crypto.randomUUID() for a brand-new
+  // product (see product-form-dialog.tsx), so checking whether it already
+  // exists is a reliable way to tell create from edit here — the upsert
+  // itself can't tell us, and we need to know so new products get
+  // appended to the end of display_order instead of defaulting to 0 (the
+  // column's default) and jumping to the front of the homepage/shop.
+  const { data: existing } = await supabase
+    .from("products")
+    .select("id")
+    .eq("id", input.id)
+    .maybeSingle();
+
+  let displayOrder: number | undefined;
+  if (!existing) {
+    const { data: last } = await supabase
+      .from("products")
+      .select("display_order")
+      .order("display_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    displayOrder = (last?.display_order ?? -1) + 1;
+  }
+
   const { error } = await supabase.from("products").upsert({
     id: input.id,
     slug: input.slug,
@@ -62,13 +86,37 @@ export async function saveProduct(input: ProductInput) {
     price: input.price,
     images: input.images,
     stock: input.stock,
+    // Omitted entirely on edit, so the existing order is left untouched
+    // instead of being reset by the upsert.
+    ...(displayOrder !== undefined ? { display_order: displayOrder } : {}),
   });
 
   if (error) throw new Error(error.message);
 
-  // Both pages read the products table, so refresh their cached data.
+  // All three read the products table, so refresh their cached data.
   revalidatePath("/shop");
   revalidatePath("/admin/products");
+  revalidatePath("/");
+}
+
+// Persists a drag-and-drop reorder from /admin/products — `orderedIds` is
+// the full product list in its new order, index becomes display_order.
+export async function reorderProducts(orderedIds: string[]) {
+  await requireAdmin();
+
+  const supabase = adminClient();
+  const results = await Promise.all(
+    orderedIds.map((id, index) =>
+      supabase.from("products").update({ display_order: index }).eq("id", id)
+    )
+  );
+
+  const failed = results.find((result) => result.error);
+  if (failed?.error) throw new Error(failed.error.message);
+
+  revalidatePath("/shop");
+  revalidatePath("/admin/products");
+  revalidatePath("/");
 }
 
 // Uploads dragged/selected files to the `product-images` Storage bucket
@@ -109,4 +157,5 @@ export async function deleteProduct(id: string) {
 
   revalidatePath("/shop");
   revalidatePath("/admin/products");
+  revalidatePath("/");
 }

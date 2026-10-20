@@ -168,6 +168,10 @@ export function ProductFormDialog({
       price: Number.isFinite(price) ? price : 0,
       stock: Number.isInteger(stock) && stock >= 0 ? stock : 0,
       images: form.images,
+      // The server decides the real value (appended to the end for a new
+      // product, left untouched for an edit — see saveProduct) — this is
+      // just a locally-held placeholder until the next refresh.
+      displayOrder: product?.displayOrder ?? 0,
     };
 
     onSave(savedProduct);

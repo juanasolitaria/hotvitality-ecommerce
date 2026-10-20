@@ -13,10 +13,11 @@ interface ProductRow {
   price: number;
   images: string[];
   stock: number;
+  display_order: number;
 }
 
 const PRODUCT_COLUMNS =
-  "id, slug, name, short_description, description, price, images, stock";
+  "id, slug, name, short_description, description, price, images, stock, display_order";
 
 function mapProduct(row: ProductRow): Product {
   return {
@@ -28,6 +29,7 @@ function mapProduct(row: ProductRow): Product {
     price: row.price,
     images: row.images,
     stock: row.stock,
+    displayOrder: row.display_order,
   };
 }
 
@@ -37,7 +39,7 @@ export async function getProducts(): Promise<Product[]> {
     .from("products")
     .select(PRODUCT_COLUMNS)
     .eq("is_active", true)
-    .order("created_at", { ascending: true });
+    .order("display_order", { ascending: true });
 
   if (error) throw error;
   return (data ?? []).map(mapProduct);
